@@ -1,90 +1,168 @@
-# UltraFold Notes — Chrome Extension
+# Lumafold
 
-A minimal, powerful notes app with folders, panels, and rich text editing.
+Lumafold is a Chrome extension for structured note-taking with folders, multi-panel layouts, and a rich text editor.
 
-## Setup
+It runs as a popup and can also open in a full browser tab for a larger workspace.
+
+## Highlights
+
+- Folder-based organization with drag-to-reorder tabs.
+- 1 to 3 visible panels per folder (hide/unhide without losing data).
+- Rich text editing powered by Tiptap (headings, lists, code, quotes, hr, font family).
+- Light/Dark mode, accent color selection, and adjustable editor font size.
+- Auto-save to `chrome.storage.local` (or `localStorage` when running outside extension context).
+- Import/export full app state as JSON.
+- Fullscreen tab support from toolbar button and keyboard command.
+
+## Tech Stack
+
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Chrome Extension Manifest V3
+- Tiptap editor extensions
+
+## Quick Start
+
+### 1) Install dependencies
 
 ```bash
 npm install
+```
+
+### 2) Build the extension
+
+```bash
 npm run build
 ```
 
-Then in Chrome:
-1. Go to `chrome://extensions`
-2. Enable **Developer mode** (top right)
-3. Click **Load unpacked**
-4. Select the `dist/` folder
+### 3) Load in Chrome
 
-For development with hot reload:
+1. Open `chrome://extensions`
+2. Enable **Developer mode**
+3. Click **Load unpacked**
+4. Select the `dist` folder
+
+## Development
+
+Start Vite dev server:
+
 ```bash
 npm run dev
 ```
-Then load the project root (not dist) as an unpacked extension, or open `http://localhost:5173/popup.html`.
 
----
+Then either:
 
-## Features
+- Open `http://localhost:5173/popup.html` in the browser, or
+- Load the project root as unpacked extension for development workflows.
 
-- **Folders** — unlimited, reorderable tabs with show/hide
-- **Panels** — 1–3 per folder, drag to reorder
-- **Rich text** — Tiptap editor with full formatting toolbar
-- **Fonts** — 8 font options per panel
-- **Dark/Light mode** — auto-detects OS preference
-- **Accent colors** — 8 presets + custom picker
-- **Auto-save** — debounced, stored in `chrome.storage.local`
+## Scripts
+
+- `npm run dev` — start dev server
+- `npm run build` — type-check (`tsc`) and production build via Vite
+- `npm run preview` — preview production build
 
 ## Keyboard Shortcuts
 
+### App shortcuts
+
 | Shortcut | Action |
 |---|---|
-| `Ctrl+T` | New folder |
-| `Ctrl+1-9` | Switch folder |
-| `Ctrl+Shift+]` | Add panel |
-| `Ctrl+Shift+L` | Toggle dark/light |
-| `Ctrl+,` | Settings |
-| `Ctrl+B/I/U` | Bold/Italic/Underline |
-| `Ctrl+E` | Inline code |
-| `Alt+Shift+N` | Open fullscreen tab |
+| `Ctrl+T` | Create new folder |
+| `Ctrl+1...9` | Switch to visible folder by index |
+| `Ctrl+Shift+]` | Add panel in active folder |
+| `Ctrl+Shift+L` | Toggle light/dark mode |
+| `Ctrl+,` | Open/close settings |
 
-## Project Structure
+### Chrome command
 
-```
-ultrafold-notes/
-├── manifest.json          # Chrome MV3 manifest
-├── background.js          # Service worker (fullscreen shortcut)
-├── popup.html             # Extension popup entry point
-├── src/
-│   ├── main.tsx           # React entry
-│   ├── App.tsx            # Root component + layout
-│   ├── index.css          # Global styles + Tiptap prose
-│   ├── types.ts           # TypeScript types
-│   ├── hooks/
-│   │   └── useStorage.ts  # All state + chrome.storage.local
-│   └── components/
-│       ├── TabBar.tsx     # Folder tabs
-│       ├── Panel.tsx      # Single panel wrapper
-│       ├── RichEditor.tsx # Tiptap editor + toolbar
-│       └── Settings.tsx   # Theme settings overlay
-├── vite.config.ts
-├── tailwind.config.js
-├── tsconfig.json
-└── package.json
-```
+| Shortcut | Action |
+|---|---|
+| `Alt+Shift+N` | Open Lumafold in a full tab (`open-fullscreen`) |
 
-## Iterating
+You can customize extension commands at `chrome://extensions/shortcuts`.
 
-All state lives in `useStorage.ts`. The data schema is:
+## How Data Works
+
+Lumafold stores one state object (`appState`) with folders, panels, and theme settings.
+
+- In extension mode: persisted via `chrome.storage.local`.
+- In web/dev fallback mode: persisted via `localStorage` key `ultrafold_state`.
+
+`Panel.content` is stored as Tiptap HTML.
+
+### State shape
 
 ```ts
-{
-  folders: [{ id, name, hidden, panels: [{ id, title, content }], panelWidths }],
-  activeFolderId: string,
-  theme: { mode: 'light'|'dark', accent: string }
+interface AppState {
+  folders: Folder[];
+  activeFolderId: string | null;
+  theme: {
+    mode: "light" | "dark";
+    accent: string;
+    fontSize: number;
+  };
 }
 ```
 
-Next steps you might want to add:
-- Drag handles between panels for resizing width
-- Export/import JSON backup
-- Focus/distraction-free mode
-- Markdown paste support
+### Important behavior
+
+- Hiding folders/panels preserves content; it does not delete.
+- Deleting a folder is permanent and can trigger a confirmation when content exists.
+- Max visible panels per folder is 3.
+- Imported JSON is validated/migrated before replacing current state.
+
+## UX Modes
+
+Lumafold adapts to two display modes:
+
+- **Popup mode**: constrained extension window (targeted to 800x600 layout).
+- **Tab mode**: full viewport editor with bottom formatting toolbar.
+
+`public/init.js` sets mode early to reduce layout flashes before React mounts.
+
+## Project Structure
+
+```text
+lumafold/
+├─ manifest.json                 # MV3 manifest, permissions, command bindings
+├─ background.js                 # Service worker (handles open-fullscreen command)
+├─ popup.html                    # Extension entry HTML
+├─ public/
+│  └─ init.js                    # Early mode/bootstrap script
+├─ src/
+│  ├─ App.tsx                    # Main shell, top bar, modals, keyboard handlers
+│  ├─ main.tsx                   # React entrypoint
+│  ├─ types.ts                   # AppState / Folder / Panel / Theme types
+│  ├─ hooks/
+│  │  └─ useStorage.ts           # Load/save/migrations + all state actions
+│  ├─ components/
+│  │  ├─ TabBar.tsx              # Folder tabs + rename/hide/delete/reorder
+│  │  ├─ Panel.tsx               # Panel wrapper + title edit + hide + drag target
+│  │  ├─ RichEditor.tsx          # Tiptap editor instance
+│  │  ├─ Settings.tsx            # Theme + import/export controls
+│  │  ├─ FoldersModal.tsx        # Folder manager
+│  │  ├─ PanelsModal.tsx         # Panel manager
+│  │  ├─ FormatModal.tsx         # Formatting controls modal
+│  │  └─ BottomToolbar.tsx       # Fullscreen toolbar
+│  └─ context/                   # Modal + active editor context
+├─ vite.config.ts
+└─ package.json
+```
+
+## Permissions
+
+From `manifest.json`:
+
+- `storage` — persist notes/settings
+- `tabs` — open Lumafold in full tab
+
+## Troubleshooting
+
+- If updates do not appear, rebuild (`npm run build`) and re-load the extension in `chrome://extensions`.
+- If keyboard command conflicts with OS/browser bindings, change it in `chrome://extensions/shortcuts`.
+- If imported data seems invalid, verify the JSON came from Lumafold export and includes `folders` array.
+
+## License
+
+No explicit license file is currently included in this repository.
