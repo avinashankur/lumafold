@@ -8,22 +8,46 @@ function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-function makePanel(title = "Notes"): Panel {
-  return { id: generateId(), title, content: "", hidden: false };
+function makePanel(title = "Notes", content = ""): Panel {
+  return { id: generateId(), title, content, hidden: false };
 }
 
-function makeFolder(name = "Folder"): Folder {
+function makeFolder(
+  name = "Folder",
+  panels = [makePanel("Notes"), makePanel("Action Items")]
+): Folder {
   return {
     id: generateId(),
     name,
     hidden: false,
-    panels: [makePanel("Notes"), makePanel("Tasks")],
+    panels,
     panelWidths: [50, 50],
   };
 }
 
 const DEFAULT_STATE: AppState = {
-  folders: [makeFolder("Personal"), makeFolder("Work")],
+  folders: [
+    makeFolder("Workspace", [
+      makePanel(
+        "Overview",
+        "<p>Summarize the current focus, key context, and important decisions here.</p>"
+      ),
+      makePanel(
+        "Action Items",
+        "<p>Track next steps, owners, and follow-up items here.</p>"
+      ),
+    ]),
+    makeFolder("Reference", [
+      makePanel(
+        "Resources",
+        "<p>Store useful links, supporting notes, and source material here.</p>"
+      ),
+      makePanel(
+        "Notes",
+        "<p>Capture relevant observations and details for later review.</p>"
+      ),
+    ]),
+  ],
   activeFolderId: null,
   theme: {
     mode:

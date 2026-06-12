@@ -56,7 +56,7 @@ export default function FoldersModal({
       onClick={onClose}
     >
       <div
-        className="rounded-xl shadow-2xl w-72 overflow-hidden"
+        className="flex max-h-[calc(100vh-32px)] w-72 flex-col overflow-hidden rounded-xl shadow-2xl"
         style={{ background: "var(--panel-bg)", border: "1px solid var(--border)" }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -66,7 +66,7 @@ export default function FoldersModal({
             <X size={15} />
           </button>
         </div>
-        <div className="p-4 space-y-4">
+        <div className="flex min-h-0 flex-col gap-4 overflow-hidden p-4">
           <button
             onClick={() => {
               onAddFolder();
@@ -79,11 +79,11 @@ export default function FoldersModal({
             Add folder
           </button>
           {folders.length > 0 && (
-            <div>
+            <div className="min-h-0 overflow-hidden">
               <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider block mb-2">
                 Folders
               </span>
-              <div className="flex flex-col gap-1">
+              <div className="thin-scrollbar flex max-h-[55vh] flex-col gap-1 overflow-y-auto pr-1">
                 {folders.map((f) => (
                   <div
                     key={f.id}
