@@ -251,6 +251,7 @@ export default function App() {
                       setDragOverPanel(null);
                     }}
                     isDragOver={dragOverPanel === idx}
+                    showHeader={state.preferences.showPanelHeaders}
                   />
                 </div>
               );
@@ -288,6 +289,8 @@ export default function App() {
           <Settings
             theme={state.theme}
             onThemeChange={store.setTheme}
+            preferences={state.preferences}
+            onPreferencesChange={store.setPreferences}
             onClose={() => setShowSettings(false)}
             state={state}
             onImportState={store.importState}

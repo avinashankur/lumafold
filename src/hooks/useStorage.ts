@@ -1,6 +1,12 @@
 // src/hooks/useStorage.ts
 import { useState, useEffect, useCallback } from "react";
-import { AppState, Folder, Panel, ThemeSettings } from "../types";
+import {
+  AppState,
+  Folder,
+  Panel,
+  PreferencesSettings,
+  ThemeSettings,
+} from "../types";
 
 const isExtension = typeof chrome !== "undefined" && !!chrome.storage;
 
@@ -55,6 +61,9 @@ const DEFAULT_STATE: AppState = {
     accent: "#6366f1",
     fontSize: 13,
   },
+  preferences: {
+    showPanelHeaders: true,
+  },
 };
 
 async function loadState(): Promise<AppState> {
@@ -100,6 +109,14 @@ export function useStorage() {
       // Migrate: add fontSize for legacy theme
       if (s.theme && typeof s.theme.fontSize !== "number") {
         s.theme = { ...s.theme, fontSize: 13 };
+      }
+      const legacyTheme = s.theme as ThemeSettings & {
+        showPanelHeaders?: boolean;
+      };
+      if (!s.preferences || typeof s.preferences.showPanelHeaders !== "boolean") {
+        s.preferences = {
+          showPanelHeaders: legacyTheme.showPanelHeaders ?? true,
+        };
       }
       setState(s);
       setLoaded(true);
@@ -329,6 +346,16 @@ export function useStorage() {
     [update]
   );
 
+  const setPreferences = useCallback(
+    (preferences: Partial<PreferencesSettings>) => {
+      update((s) => ({
+        ...s,
+        preferences: { ...s.preferences, ...preferences },
+      }));
+    },
+    [update]
+  );
+
   // Import: replace state with imported data (validated, migrated)
   const importState = useCallback((data: unknown) => {
     if (!data || typeof data !== "object") return false;
@@ -360,6 +387,14 @@ export function useStorage() {
         accent: String((d.theme as Record<string, unknown>)?.accent ?? "#6366f1"),
         fontSize: Number((d.theme as Record<string, unknown>)?.fontSize) || 13,
       },
+      preferences: {
+        showPanelHeaders:
+          typeof (d.preferences as Record<string, unknown>)?.showPanelHeaders === "boolean"
+            ? Boolean((d.preferences as Record<string, unknown>).showPanelHeaders)
+            : typeof (d.theme as Record<string, unknown>)?.showPanelHeaders === "boolean"
+              ? Boolean((d.theme as Record<string, unknown>).showPanelHeaders)
+              : true,
+      },
     };
     const visibleFolders = s.folders.filter((f) => !f.hidden);
     if (!s.activeFolderId || !visibleFolders.find((f) => f.id === s.activeFolderId)) {
@@ -386,6 +421,7 @@ export function useStorage() {
     updatePanelContent,
     reorderPanels,
     setTheme,
+    setPreferences,
     importState,
   };
 }

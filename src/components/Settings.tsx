@@ -1,7 +1,7 @@
 // src/components/Settings.tsx
 import { useRef } from "react";
 import { X, Download, Upload } from "lucide-react";
-import { ThemeSettings } from "../types";
+import { PreferencesSettings, ThemeSettings } from "../types";
 import type { AppState } from "../types";
 import { useModal } from "../context/ModalContext";
 
@@ -33,12 +33,22 @@ const ACCENTS = [
 interface Props {
   theme: ThemeSettings;
   onThemeChange: (t: Partial<ThemeSettings>) => void;
+  preferences: PreferencesSettings;
+  onPreferencesChange: (preferences: Partial<PreferencesSettings>) => void;
   onClose: () => void;
   state: AppState;
   onImportState: (data: unknown) => boolean;
 }
 
-export default function Settings({ theme, onThemeChange, onClose, state, onImportState }: Props) {
+export default function Settings({
+  theme,
+  onThemeChange,
+  preferences,
+  onPreferencesChange,
+  onClose,
+  state,
+  onImportState,
+}: Props) {
   const { showAlert } = useModal();
   const importInputRef = useRef<HTMLInputElement>(null);
 
@@ -95,6 +105,27 @@ export default function Settings({ theme, onThemeChange, onClose, state, onImpor
                   {m.charAt(0).toUpperCase() + m.slice(1)}
                 </button>
               ))}
+            </div>
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-xs text-[var(--text)]">Panel headers</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={preferences.showPanelHeaders}
+                onClick={() =>
+                  onPreferencesChange({ showPanelHeaders: !preferences.showPanelHeaders })
+                }
+                className={`relative h-5 w-9 rounded-full transition-colors ${
+                  preferences.showPanelHeaders ? "bg-[var(--accent)]" : "bg-[var(--hover)]"
+                }`}
+                title={`${preferences.showPanelHeaders ? "Hide" : "Show"} panel headers`}
+              >
+                <span
+                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                    preferences.showPanelHeaders ? "translate-x-0" : "-translate-x-[18px]"
+                  }`}
+                />
+              </button>
             </div>
           </div>
 

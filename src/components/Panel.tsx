@@ -13,6 +13,7 @@ interface Props {
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
   isDragOver: boolean;
+  showHeader: boolean;
 }
 
 export default function Panel({
@@ -24,6 +25,7 @@ export default function Panel({
   onDragOver,
   onDrop,
   isDragOver,
+  showHeader,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(panel.title);
@@ -52,55 +54,56 @@ export default function Panel({
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      {/* Panel header */}
-      <div
-        className="flex items-center gap-1.5 px-2.5 py-1.5 flex-shrink-0 group"
-        style={{
-          background: "var(--panel-header-bg)",
-          borderBottom: "1px solid var(--border)",
-        }}
-      >
-        {/* Drag handle */}
+      {showHeader && (
         <div
-          draggable
-          onDragStart={onDragStart}
-          className="cursor-grab text-[var(--text-muted)] opacity-0 group-hover:opacity-40 transition-opacity active:cursor-grabbing flex-shrink-0"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 flex-shrink-0 group"
+          style={{
+            background: "var(--panel-header-bg)",
+            borderBottom: "1px solid var(--border)",
+          }}
         >
-          <GripVertical size={13} />
-        </div>
-
-        {/* Title */}
-        {editing ? (
-          <input
-            ref={inputRef}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commitEdit}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") commitEdit();
-              if (e.key === "Escape") setEditing(false);
-            }}
-            className="flex-1 text-xs font-medium bg-transparent outline-none border-b border-[var(--accent)] text-[var(--text)]"
-          />
-        ) : (
-          <span
-            className="flex-1 text-xs font-medium text-[var(--text-muted)] cursor-pointer select-none truncate"
-            onDoubleClick={startEdit}
-            title="Double-click to rename"
+          {/* Drag handle */}
+          <div
+            draggable
+            onDragStart={onDragStart}
+            className="cursor-grab text-[var(--text-muted)] opacity-0 group-hover:opacity-40 transition-opacity active:cursor-grabbing flex-shrink-0"
           >
-            {panel.title}
-          </span>
-        )}
+            <GripVertical size={13} />
+          </div>
 
-        {/* Hide button — always present on hover, hides panel (data preserved) */}
-        <button
-          onClick={onHide}
-          className="opacity-0 group-hover:opacity-60 hover:!opacity-100 text-[var(--text-muted)] hover:text-[var(--text)] transition-all flex-shrink-0"
-          title="Hide panel (data is preserved)"
-        >
-          <EyeOff size={12} />
-        </button>
-      </div>
+          {/* Title */}
+          {editing ? (
+            <input
+              ref={inputRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commitEdit}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitEdit();
+                if (e.key === "Escape") setEditing(false);
+              }}
+              className="flex-1 text-xs font-medium bg-transparent outline-none border-b border-[var(--accent)] text-[var(--text)]"
+            />
+          ) : (
+            <span
+              className="flex-1 text-xs font-medium text-[var(--text-muted)] cursor-pointer select-none truncate"
+              onDoubleClick={startEdit}
+              title="Double-click to rename"
+            >
+              {panel.title}
+            </span>
+          )}
+
+          {/* Hide button — always present on hover, hides panel (data preserved) */}
+          <button
+            onClick={onHide}
+            className="opacity-0 group-hover:opacity-60 hover:!opacity-100 text-[var(--text-muted)] hover:text-[var(--text)] transition-all flex-shrink-0"
+            title="Hide panel (data is preserved)"
+          >
+            <EyeOff size={12} />
+          </button>
+        </div>
+      )}
 
       {/* Editor — fills remaining space */}
       <div className="flex-1 overflow-hidden min-h-0">

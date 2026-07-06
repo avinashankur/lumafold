@@ -21,8 +21,13 @@ export interface ThemeSettings {
   fontSize: number; // px, applies to all editors (12–16)
 }
 
+export interface PreferencesSettings {
+  showPanelHeaders: boolean;
+}
+
 export interface AppState {
   folders: Folder[];
   activeFolderId: string | null;
   theme: ThemeSettings;
+  preferences: PreferencesSettings;
 }
