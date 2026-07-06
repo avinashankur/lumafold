@@ -1,4 +1,5 @@
-// src/App.tsx
+/// <reference types="chrome" />
+
 import { useEffect, useState, useRef } from "react";
 import { Settings as SettingsIcon, Maximize2, Plus, LayoutGrid, Type, FolderOpen } from "lucide-react";
 import { useStorage } from "./hooks/useStorage";
@@ -284,18 +285,6 @@ export default function App() {
         {showFormatModal && (
           <FormatModal onClose={() => setShowFormatModal(false)} />
         )}
-        {/* Settings overlay */}
-        {showSettings && (
-          <Settings
-            theme={state.theme}
-            onThemeChange={store.setTheme}
-            preferences={state.preferences}
-            onPreferencesChange={store.setPreferences}
-            onClose={() => setShowSettings(false)}
-            state={state}
-            onImportState={store.importState}
-          />
-        )}
       </div>
 
       {/* Bottom bar: panel controls + format tools — fullscreen only */}
@@ -306,6 +295,19 @@ export default function App() {
           onAddPanel={() => store.addPanel(activeFolder.id)}
           panels={activeFolder.panels}
           onUnhidePanel={(panelId) => store.unhidePanelById(activeFolder.id, panelId)}
+        />
+      )}
+
+      {/* Viewport-level overlay: covers the tab bar, panels, and bottom toolbar. */}
+      {showSettings && (
+        <Settings
+          theme={state.theme}
+          onThemeChange={store.setTheme}
+          preferences={state.preferences}
+          onPreferencesChange={store.setPreferences}
+          onClose={() => setShowSettings(false)}
+          state={state}
+          onImportState={store.importState}
         />
       )}
     </div>

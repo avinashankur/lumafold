@@ -78,7 +78,7 @@ export default function Settings({
     }
   };
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }}>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }}>
       <div className="rounded-xl shadow-2xl w-72 overflow-hidden" style={{ background: "var(--panel-bg)", border: "1px solid var(--border)" }}>
         <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--border)" }}>
           <span className="text-sm font-semibold text-[var(--text)]">Settings</span>
