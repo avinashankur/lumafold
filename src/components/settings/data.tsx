@@ -1,7 +1,8 @@
-import { useRef } from "react";
-import { Download, Upload } from "lucide-react";
-import { useModal } from "@/context/ModalContext";
-import type { AppState } from "../../types";
+import { useRef } from 'react';
+import { Download, Upload } from 'lucide-react';
+import { useModal } from '@/context/ModalContext';
+import type { AppState } from '../../types';
+import { Button } from '../ui/button';
 
 export interface DataSettingsProps {
   state: AppState;
@@ -14,10 +15,10 @@ export const DataSettings = ({ state, onImportState }: DataSettingsProps) => {
 
   const exportNotes = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], {
-      type: "application/json",
+      type: 'application/json',
     });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `lumafold-export-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
@@ -26,18 +27,18 @@ export const DataSettings = ({ state, onImportState }: DataSettingsProps) => {
 
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    e.target.value = "";
+    e.target.value = '';
     if (!file) return;
     try {
       const data = JSON.parse(await file.text());
       if (onImportState(data)) {
-        showAlert("Notes imported successfully.");
+        showAlert('Notes imported successfully.');
       } else {
-        showAlert("Invalid file format. Expected Lumafold export JSON.");
+        showAlert('Invalid file format. Expected Lumafold export JSON.');
       }
     } catch {
       showAlert(
-        "Could not read file. Please choose a valid Lumafold export (.json) file.",
+        'Could not read file. Please choose a valid Lumafold export (.json) file.',
       );
     }
   };
@@ -45,7 +46,8 @@ export const DataSettings = ({ state, onImportState }: DataSettingsProps) => {
   return (
     <div>
       <p className="mb-4 text-xs leading-5 text-[var(--text-muted)]">
-        Export a backup of your folders and notes, or restore a previous Lumafold export.
+        Export a backup of your folders and notes, or restore a previous
+        Lumafold export.
       </p>
       <input
         ref={importInputRef}
@@ -55,18 +57,15 @@ export const DataSettings = ({ state, onImportState }: DataSettingsProps) => {
         className="hidden"
       />
       <div className="flex gap-2">
-        <button
-          onClick={exportNotes}
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--hover)] py-2 text-xs font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
-        >
+        <Button onClick={exportNotes} className="text-xs">
           <Download size={14} /> Export
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => importInputRef.current?.click()}
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--hover)] py-2 text-xs font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+          className="text-xs"
         >
           <Upload size={14} /> Import
-        </button>
+        </Button>
       </div>
     </div>
   );
