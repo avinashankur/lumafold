@@ -45,7 +45,7 @@ export default function Panel({
   return (
     <div
       className={`flex flex-col h-full min-w-0 rounded-lg overflow-hidden transition-all duration-100 ${
-        isDragOver ? "ring-2 ring-[var(--accent)]" : ""
+        isDragOver ? "ring-2 ring-[var(--primary)]" : ""
       }`}
       style={{
         background: "var(--panel-bg)",
@@ -82,7 +82,7 @@ export default function Panel({
                 if (e.key === "Enter") commitEdit();
                 if (e.key === "Escape") setEditing(false);
               }}
-              className="flex-1 text-xs font-medium bg-transparent outline-none border-b border-[var(--accent)] text-[var(--text)]"
+              className="flex-1 text-xs font-medium bg-transparent outline-none border-b border-[var(--primary)] text-[var(--text)]"
             />
           ) : (
             <span

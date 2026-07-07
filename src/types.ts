@@ -16,11 +16,10 @@ export interface Folder {
 }
 
 export interface ThemeSettings {
-  accent: string; // hex color
   fontSize: number; // px, applies to all editors (12–16)
 }
 
-export interface PreferencesSettings {
+export interface PreferencesSettingTypes {
   showPanelHeaders: boolean;
   showTabBarScrollBar: boolean;
 }
@@ -29,5 +28,5 @@ export interface AppState {
   folders: Folder[];
   activeFolderId: string | null;
   theme: ThemeSettings;
-  preferences: PreferencesSettings;
+  preferences: PreferencesSettingTypes;
 }

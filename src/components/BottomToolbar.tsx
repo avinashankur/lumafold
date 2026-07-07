@@ -53,7 +53,7 @@ function Btn({
       }}
       className={`p-1 rounded transition-colors ${
         active
-          ? "bg-[var(--accent)] text-white"
+          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
           : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--hover)]"
       }`}
     >
@@ -90,7 +90,7 @@ export default function BottomToolbar({
   const formatTools = activeEditor && (
     <>
       <select
-        className="text-xs bg-transparent text-[var(--text-muted)] border border-[var(--border)] rounded px-1 py-0.5 mr-0.5 cursor-pointer hover:border-[var(--accent)] transition-colors"
+        className="text-xs bg-transparent text-[var(--text-muted)] border border-[var(--border)] rounded px-1 py-0.5 mr-0.5 cursor-pointer hover:border-[var(--primary)] transition-colors"
         onMouseDown={(e) => e.stopPropagation()}
         onChange={(e) => activeEditor.chain().focus().setFontFamily(e.target.value).run()}
         value={FONTS.find((f) => activeEditor.isActive("textStyle", { fontFamily: f.value }))?.value ?? ""}

@@ -97,7 +97,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 onClick={modal.type === "alert" ? close : handleConfirm}
                 className="px-3 py-1.5 rounded text-xs font-medium text-white transition-colors"
                 style={{
-                  background: modal.type === "confirm" && modal.danger ? "#ef4444" : "var(--accent)",
+                  background: modal.type === "confirm" && modal.danger ? "#ef4444" : "var(--primary)",
                 }}
               >
                 {modal.type === "alert" ? "OK" : modal.confirmLabel ?? "Confirm"}

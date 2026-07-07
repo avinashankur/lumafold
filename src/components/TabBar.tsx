@@ -90,9 +90,9 @@ export default function TabBar({
                   ? "text-white"
                   : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--hover)]"
               }
-              ${dragOverIdx === idx ? "ring-1 ring-[var(--accent)]" : ""}
+              ${dragOverIdx === idx ? "ring-1 ring-[var(--primary)]" : ""}
             `}
-            style={isActive ? { background: "var(--accent)" } : {}}
+            style={isActive ? { background: "var(--primary)", color: "var(--primary-foreground)" } : {}}
           >
             {editingId === folder.id ? (
               <input
@@ -105,7 +105,7 @@ export default function TabBar({
                   if (e.key === "Enter") commitEdit(folder.id);
                   if (e.key === "Escape") setEditingId(null);
                 }}
-                className="w-20 bg-transparent outline-none border-b border-[var(--accent)] text-[var(--text)]"
+                className="w-20 bg-transparent outline-none border-b border-[var(--primary)] text-[var(--text)]"
               />
             ) : (
               <span
@@ -163,7 +163,7 @@ export default function TabBar({
       {/* Add folder button */}
       <button
         onClick={onAdd}
-        className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors flex-shrink-0 ml-0.5"
+        className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--hover)] transition-colors flex-shrink-0 ml-0.5"
         title="New Folder (Ctrl+T)"
       >
         <Plus size={12} />

@@ -40,7 +40,7 @@ function Btn({
       onMouseDown={(e) => { e.preventDefault(); onClick(); }}
       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
         active
-          ? "bg-[var(--accent)] text-white"
+          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
           : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--hover)]"
       }`}
     >
@@ -63,7 +63,7 @@ export default function FormatModal({ onClose }: Props) {
       <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }} onClick={onClose}>
         <div className="rounded-xl shadow-2xl p-6 max-w-xs text-center" style={{ background: "var(--panel-bg)", border: "1px solid var(--border)" }} onClick={(e) => e.stopPropagation()}>
           <p className="text-sm text-[var(--text-muted)]">Click in a panel first to format text.</p>
-          <button onClick={onClose} className="mt-3 text-xs text-[var(--accent)] hover:underline">Close</button>
+          <button onClick={onClose} className="mt-3 text-xs text-[var(--primary)] hover:underline">Close</button>
         </div>
       </div>
     );

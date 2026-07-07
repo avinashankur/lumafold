@@ -4,7 +4,7 @@ import {
   AppState,
   Folder,
   Panel,
-  PreferencesSettings,
+  PreferencesSettingTypes,
   ThemeSettings,
 } from "../types";
 
@@ -56,7 +56,6 @@ const DEFAULT_STATE: AppState = {
   ],
   activeFolderId: null,
   theme: {
-    accent: "#6366f1",
     fontSize: 13,
   },
   preferences: {
@@ -352,7 +351,7 @@ export function useStorage() {
   );
 
   const setPreferences = useCallback(
-    (preferences: Partial<PreferencesSettings>) => {
+    (preferences: Partial<PreferencesSettingTypes>) => {
       update((s) => ({
         ...s,
         preferences: { ...s.preferences, ...preferences },
@@ -388,7 +387,6 @@ export function useStorage() {
       }) as Folder[],
       activeFolderId: typeof d.activeFolderId === "string" ? d.activeFolderId : null,
       theme: {
-        accent: String((d.theme as Record<string, unknown>)?.accent ?? "#6366f1"),
         fontSize: Number((d.theme as Record<string, unknown>)?.fontSize) || 13,
       },
       preferences: {

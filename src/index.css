@@ -4,21 +4,6 @@
 @import "@fontsource-variable/geist";
 @config "../tailwind.config.js";
 
-/* ── Root defaults — match dark theme to avoid white flash ── */
-:root {
-  --editor-font-size: 13px;
-  --bg: #111113;
-  --panel-bg: #18181b;
-  --panel-header-bg: #1c1c20;
-  --toolbar-bg: #1c1c20;
-  --tab-bar-bg: #111113;
-  --border: #2a2a30;
-  --text: #e4e4e7;
-  --text-muted: #71717a;
-  --hover: #27272a;
-  --accent: #6366f1;
-}
-
 * { box-sizing: border-box; }
 
 html, body, #root {
@@ -26,7 +11,7 @@ html, body, #root {
   height: 100%;
   /* no x-scroll anywhere */
   overflow: hidden;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   background: var(--bg);
 }
 
@@ -64,7 +49,7 @@ html[data-mode="popup"] #root {
   font-family: 'DM Sans', sans-serif;
   font-size: var(--editor-font-size);
   line-height: 1;
-  caret-color: var(--accent);
+  caret-color: var(--primary);
   word-wrap: break-word;
   overflow-wrap: break-word;
   overflow-x: hidden;
@@ -83,7 +68,7 @@ html[data-mode="popup"] #root {
 
 .ProseMirror code {
   background: var(--hover);
-  color: var(--accent);
+  color: var(--primary);
   font-family: 'DM Mono', monospace;
   font-size: 0.84em;
   padding: 0.1em 0.3em;
@@ -110,7 +95,7 @@ html[data-mode="popup"] #root {
 }
 
 .ProseMirror blockquote {
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid var(--primary);
   padding-left: 0.85em;
   margin: 0.5em 0;
   color: var(--text-muted);
@@ -138,7 +123,7 @@ html[data-mode="popup"] #root {
 }
 
 .ProseMirror ::selection {
-  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  background: color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
 @theme inline {
@@ -218,6 +203,15 @@ html[data-mode="popup"] #root {
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --bg: var(--background);
+    --panel-bg: var(--card);
+    --panel-header-bg: var(--muted);
+    --toolbar-bg: var(--card);
+    --tab-bar-bg: var(--background);
+    --text: var(--foreground);
+    --text-muted: var(--muted-foreground);
+    --hover: var(--accent);
+    --editor-font-size: 13px;
   }
   .dark {
     --background: oklch(0.145 0 0);
@@ -251,6 +245,14 @@ html[data-mode="popup"] #root {
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+    --bg: var(--background);
+    --panel-bg: var(--card);
+    --panel-header-bg: var(--muted);
+    --toolbar-bg: var(--card);
+    --tab-bar-bg: var(--background);
+    --text: var(--foreground);
+    --text-muted: var(--muted-foreground);
+    --hover: var(--accent);
   }
   * {
     @apply border-border outline-ring/50;

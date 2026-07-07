@@ -85,7 +85,7 @@ export default function PanelsModal({
                     {p.hidden ? (
                       <button
                         onClick={() => handleUnhide(p.id)}
-                        className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors shrink-0 text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white"
+                        className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors shrink-0 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
                         title="Unhide this panel"
                       >
                         <Eye size={12} />
