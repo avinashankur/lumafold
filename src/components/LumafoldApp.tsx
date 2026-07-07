@@ -1,6 +1,6 @@
 /// <reference types="chrome" />
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 import {
   FolderOpen,
   LayoutGrid,
@@ -8,17 +8,17 @@ import {
   Plus,
   Settings as SettingsIcon,
   Type,
-} from "lucide-react";
-import { useStorage } from "@/hooks/useStorage";
-import TabBar from "@/components/TabBar";
-import Panel from "@/components/Panel";
-import Settings from "@/components/Settings";
-import PanelsModal from "@/components/PanelsModal";
-import FoldersModal from "@/components/FoldersModal";
-import FormatModal from "@/components/FormatModal";
-import BottomToolbar from "@/components/BottomToolbar";
-import { useTheme } from "@/components/theme-provider";
-import { LumafoldThemeVars } from "@/providers/lumafold-theme-vars";
+} from 'lucide-react';
+import { useStorage } from '@/hooks/useStorage';
+import TabBar from '@/components/TabBar';
+import Panel from '@/components/Panel';
+import Settings from '@/components/Settings';
+import PanelsModal from '@/components/PanelsModal';
+import FoldersModal from '@/components/FoldersModal';
+import FormatModal from '@/components/FormatModal';
+import BottomToolbar from '@/components/BottomToolbar';
+import { useTheme } from '@/components/theme-provider';
+import { LumafoldThemeVars } from '@/providers/lumafold-theme-vars';
 
 export default function LumafoldApp() {
   const store = useStorage();
@@ -36,19 +36,19 @@ export default function LumafoldApp() {
     if (!state) return;
     const handler = (e: KeyboardEvent) => {
       const ctrl = e.ctrlKey || e.metaKey;
-      if (ctrl && e.key === "t") {
+      if (ctrl && e.key === 't') {
         e.preventDefault();
         store.addFolder();
       }
-      if (ctrl && e.key === ",") {
+      if (ctrl && e.key === ',') {
         e.preventDefault();
         setShowSettings((s) => !s);
       }
-      if (ctrl && e.shiftKey && e.key === "L") {
+      if (ctrl && e.shiftKey && e.key === 'L') {
         e.preventDefault();
-        setColorTheme(colorTheme === "dark" ? "light" : "dark");
+        setColorTheme(colorTheme === 'dark' ? 'light' : 'dark');
       }
-      if (ctrl && e.shiftKey && e.key === "]") {
+      if (ctrl && e.shiftKey && e.key === ']') {
         e.preventDefault();
         if (state.activeFolderId) store.addPanel(state.activeFolderId);
       }
@@ -62,15 +62,15 @@ export default function LumafoldApp() {
         }
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [colorTheme, setColorTheme, state, store]);
 
   if (!loaded || !state) {
     return (
       <div
         className="flex h-full w-full items-center justify-center"
-        style={{ background: "var(--bg)" }}
+        style={{ background: 'var(--bg)' }}
       >
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
       </div>
@@ -82,18 +82,18 @@ export default function LumafoldApp() {
     ? activeFolder.panels.filter((p) => !p.hidden)
     : [];
   const isFullscreen =
-    document.documentElement.getAttribute("data-mode") === "tab";
+    document.documentElement.getAttribute('data-mode') === 'tab';
 
   return (
     <>
       <LumafoldThemeVars fontSize={state.theme.fontSize ?? 13} />
       <div
         className="flex h-full w-full flex-col overflow-hidden font-sans"
-        style={{ background: "var(--bg)" }}
+        style={{ background: 'var(--bg)' }}
       >
         <div
           className="flex flex-shrink-0 items-center gap-2 px-2 py-1"
-          style={{ background: "var(--tab-bar-bg)" }}
+          style={{ background: 'var(--tab-bar-bg)' }}
         >
           <div className="min-w-0 flex-1 overflow-hidden">
             <TabBar
@@ -139,12 +139,12 @@ export default function LumafoldApp() {
             {!isFullscreen && (
               <button
                 onClick={() => {
-                  if (typeof chrome !== "undefined" && chrome.tabs) {
+                  if (typeof chrome !== 'undefined' && chrome.tabs) {
                     chrome.tabs.create({
-                      url: chrome.runtime.getURL("popup.html"),
+                      url: chrome.runtime.getURL('popup.html'),
                     });
                   } else {
-                    const w = window.open(window.location.href, "_blank", "");
+                    const w = window.open(window.location.href, '_blank', '');
                     if (w) w.resizeTo(screen.availWidth, screen.availHeight);
                   }
                 }}
@@ -174,20 +174,23 @@ export default function LumafoldApp() {
               <button
                 onClick={store.addFolder}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-white transition-colors"
-                style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+                style={{
+                  background: 'var(--primary)',
+                  color: 'var(--primary-foreground)',
+                }}
               >
                 <Plus size={14} /> New Folder
               </button>
             </div>
           ) : (
-            <div className="flex min-h-0 min-w-0 flex-1 gap-2 overflow-hidden p-2">
+            <div className="flex flex-1 gap-2 overflow-hidden p-2 pt-0">
               {visiblePanels.map((panel, idx) => {
                 const realIdx = activeFolder.panels.indexOf(panel);
                 return (
                   <div
                     key={panel.id}
                     className="h-full min-w-0"
-                    style={{ flex: "1 1 0" }}
+                    style={{ flex: '1 1 0' }}
                   >
                     <Panel
                       panel={panel}

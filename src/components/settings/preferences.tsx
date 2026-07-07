@@ -1,6 +1,5 @@
-import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
-import { PreferencesSettingTypes } from "../../types";
+import { Switch } from '@/components/ui/switch';
+import { PreferencesSettingTypes } from '../../types';
 
 export interface PreferencesSettingsProps {
   preferences: PreferencesSettingTypes;
@@ -16,11 +15,15 @@ export const PreferencesSettings = ({
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="text-xs font-medium">Panel headers</div>
-          <div className="mt-0.5 text-[11px] text-muted-foreground">Show titles and panel controls above editors.</div>
+          <div className="text-muted-foreground mt-0.5 text-[11px]">
+            Show titles and panel controls above editors.
+          </div>
         </div>
         <Switch
           checked={preferences.showPanelHeaders}
-          onCheckedChange={(checked) => onPreferencesChange({ showPanelHeaders: checked })}
+          onCheckedChange={(checked) =>
+            onPreferencesChange({ showPanelHeaders: checked })
+          }
           aria-label="Toggle panel headers"
         />
       </div>
@@ -28,11 +31,15 @@ export const PreferencesSettings = ({
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="text-xs font-medium">Tab bar scrollbar</div>
-          <div className="mt-0.5 text-[11px] text-muted-foreground">Show the horizontal scrollbar under folder tabs.</div>
+          <div className="text-muted-foreground mt-0.5 text-[11px]">
+            Show the horizontal scrollbar under folder tabs.
+          </div>
         </div>
         <Switch
           checked={preferences.showTabBarScrollBar}
-          onCheckedChange={(checked) => onPreferencesChange({ showTabBarScrollBar: checked })}
+          onCheckedChange={(checked) =>
+            onPreferencesChange({ showTabBarScrollBar: checked })
+          }
           aria-label="Toggle tab bar scrollbar"
         />
       </div>

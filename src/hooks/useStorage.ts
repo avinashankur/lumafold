@@ -1,26 +1,26 @@
 // src/hooks/useStorage.ts
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from 'react';
 import {
   AppState,
   Folder,
   Panel,
   PreferencesSettingTypes,
   ThemeSettings,
-} from "../types";
+} from '../types';
 
-const isExtension = typeof chrome !== "undefined" && !!chrome.storage;
+const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
 
 function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-function makePanel(title = "Notes", content = ""): Panel {
+function makePanel(title = 'Notes', content = ''): Panel {
   return { id: generateId(), title, content, hidden: false };
 }
 
 function makeFolder(
-  name = "Folder",
-  panels = [makePanel("Notes"), makePanel("Action Items")]
+  name = 'Folder',
+  panels = [makePanel('Notes'), makePanel('Action Items')],
 ): Folder {
   return {
     id: generateId(),
@@ -33,24 +33,24 @@ function makeFolder(
 
 const DEFAULT_STATE: AppState = {
   folders: [
-    makeFolder("Workspace", [
+    makeFolder('Workspace', [
       makePanel(
-        "Overview",
-        "<p>Summarize the current focus, key context, and important decisions here.</p>"
+        'Overview',
+        '<p>Summarize the current focus, key context, and important decisions here.</p>',
       ),
       makePanel(
-        "Action Items",
-        "<p>Track next steps, owners, and follow-up items here.</p>"
+        'Action Items',
+        '<p>Track next steps, owners, and follow-up items here.</p>',
       ),
     ]),
-    makeFolder("Reference", [
+    makeFolder('Reference', [
       makePanel(
-        "Resources",
-        "<p>Store useful links, supporting notes, and source material here.</p>"
+        'Resources',
+        '<p>Store useful links, supporting notes, and source material here.</p>',
       ),
       makePanel(
-        "Notes",
-        "<p>Capture relevant observations and details for later review.</p>"
+        'Notes',
+        '<p>Capture relevant observations and details for later review.</p>',
       ),
     ]),
   ],
@@ -67,13 +67,16 @@ const DEFAULT_STATE: AppState = {
 async function loadState(): Promise<AppState> {
   if (isExtension) {
     return new Promise((resolve) => {
-      chrome.storage.local.get("appState", (result: { appState?: AppState }) => {
-        if (result.appState) resolve(result.appState);
-        else resolve(DEFAULT_STATE);
-      });
+      chrome.storage.local.get(
+        'appState',
+        (result: { appState?: AppState }) => {
+          if (result.appState) resolve(result.appState);
+          else resolve(DEFAULT_STATE);
+        },
+      );
     });
   } else {
-    const raw = localStorage.getItem("ultrafold_state");
+    const raw = localStorage.getItem('ultrafold_state');
     return raw ? JSON.parse(raw) : DEFAULT_STATE;
   }
 }
@@ -84,7 +87,7 @@ async function saveState(state: AppState): Promise<void> {
       chrome.storage.local.set({ appState: state }, resolve);
     });
   } else {
-    localStorage.setItem("ultrafold_state", JSON.stringify(state));
+    localStorage.setItem('ultrafold_state', JSON.stringify(state));
   }
 }
 
@@ -101,22 +104,28 @@ export function useStorage() {
       }));
       // Ensure activeFolderId points to a visible folder
       const visibleFolders = s.folders.filter((f) => !f.hidden);
-      if (!s.activeFolderId || !visibleFolders.find((f) => f.id === s.activeFolderId)) {
+      if (
+        !s.activeFolderId ||
+        !visibleFolders.find((f) => f.id === s.activeFolderId)
+      ) {
         s.activeFolderId = visibleFolders[0]?.id ?? null;
       }
       // Migrate: add fontSize for legacy theme
-      if (s.theme && typeof s.theme.fontSize !== "number") {
+      if (s.theme && typeof s.theme.fontSize !== 'number') {
         s.theme = { ...s.theme, fontSize: 13 };
       }
       const legacyTheme = s.theme as ThemeSettings & {
         showPanelHeaders?: boolean;
       };
-      if (!s.preferences || typeof s.preferences.showPanelHeaders !== "boolean") {
+      if (
+        !s.preferences ||
+        typeof s.preferences.showPanelHeaders !== 'boolean'
+      ) {
         s.preferences = {
           showPanelHeaders: legacyTheme.showPanelHeaders ?? true,
           showTabBarScrollBar: false,
         };
-      } else if (typeof s.preferences.showTabBarScrollBar !== "boolean") {
+      } else if (typeof s.preferences.showTabBarScrollBar !== 'boolean') {
         s.preferences = {
           ...s.preferences,
           showTabBarScrollBar: false,
@@ -140,7 +149,7 @@ export function useStorage() {
 
   // ── Folder actions ──────────────────────────────────────────────
   const addFolder = useCallback(() => {
-    const folder = makeFolder("New Folder");
+    const folder = makeFolder('New Folder');
     update((s) => ({
       ...s,
       folders: [...s.folders, folder],
@@ -160,7 +169,7 @@ export function useStorage() {
         return { ...s, folders, activeFolderId };
       });
     },
-    [update]
+    [update],
   );
 
   const renameFolder = useCallback(
@@ -170,7 +179,7 @@ export function useStorage() {
         folders: s.folders.map((f) => (f.id === id ? { ...f, name } : f)),
       }));
     },
-    [update]
+    [update],
   );
 
   // Hide folder: removes from tab bar, switches to next visible folder
@@ -178,7 +187,7 @@ export function useStorage() {
     (id: string) => {
       update((s) => {
         const folders = s.folders.map((f) =>
-          f.id === id ? { ...f, hidden: true } : f
+          f.id === id ? { ...f, hidden: true } : f,
         );
         const visibleFolders = folders.filter((f) => !f.hidden);
         const activeFolderId =
@@ -188,7 +197,7 @@ export function useStorage() {
         return { ...s, folders, activeFolderId };
       });
     },
-    [update]
+    [update],
   );
 
   // Unhide folder (called from hidden folders panel)
@@ -196,18 +205,20 @@ export function useStorage() {
     (id: string) => {
       update((s) => ({
         ...s,
-        folders: s.folders.map((f) => (f.id === id ? { ...f, hidden: false } : f)),
+        folders: s.folders.map((f) =>
+          f.id === id ? { ...f, hidden: false } : f,
+        ),
         activeFolderId: id,
       }));
     },
-    [update]
+    [update],
   );
 
   const setActiveFolder = useCallback(
     (id: string) => {
       update((s) => ({ ...s, activeFolderId: id }));
     },
-    [update]
+    [update],
   );
 
   const reorderFolders = useCallback(
@@ -219,7 +230,7 @@ export function useStorage() {
         return { ...s, folders };
       });
     },
-    [update]
+    [update],
   );
 
   // ── Panel actions ───────────────────────────────────────────────
@@ -232,12 +243,12 @@ export function useStorage() {
           // Count visible panels — max 3 visible
           const visibleCount = f.panels.filter((p) => !p.hidden).length;
           if (visibleCount >= 3) return f;
-          const panels = [...f.panels, makePanel("New Panel")];
+          const panels = [...f.panels, makePanel('New Panel')];
           return { ...f, panels };
         }),
       }));
     },
-    [update]
+    [update],
   );
 
   // Hide panel instead of deleting — data preserved
@@ -250,13 +261,13 @@ export function useStorage() {
           return {
             ...f,
             panels: f.panels.map((p) =>
-              p.id === panelId ? { ...p, hidden: true } : p
+              p.id === panelId ? { ...p, hidden: true } : p,
             ),
           };
         }),
       }));
     },
-    [update]
+    [update],
   );
 
   // Unhide panel
@@ -266,9 +277,6 @@ export function useStorage() {
         ...s,
         folders: s.folders.map((f) => {
           if (f.id !== folderId) return f;
-          const visibleCount = f.panels.filter(
-            (p) => !p.hidden || p.id === panelId
-          ).length;
           // Don't exceed 3 visible — caller should show modal if blocked
           if (
             f.panels.filter((p) => !p.hidden).length >= 3 &&
@@ -279,13 +287,13 @@ export function useStorage() {
           return {
             ...f,
             panels: f.panels.map((p) =>
-              p.id === panelId ? { ...p, hidden: false } : p
+              p.id === panelId ? { ...p, hidden: false } : p,
             ),
           };
         }),
       }));
     },
-    [update]
+    [update],
   );
 
   const renamePanel = useCallback(
@@ -298,13 +306,13 @@ export function useStorage() {
             : {
                 ...f,
                 panels: f.panels.map((p) =>
-                  p.id === panelId ? { ...p, title } : p
+                  p.id === panelId ? { ...p, title } : p,
                 ),
-              }
+              },
         ),
       }));
     },
-    [update]
+    [update],
   );
 
   const updatePanelContent = useCallback(
@@ -317,13 +325,13 @@ export function useStorage() {
             : {
                 ...f,
                 panels: f.panels.map((p) =>
-                  p.id === panelId ? { ...p, content } : p
+                  p.id === panelId ? { ...p, content } : p,
                 ),
-              }
+              },
         ),
       }));
     },
-    [update]
+    [update],
   );
 
   const reorderPanels = useCallback(
@@ -339,7 +347,7 @@ export function useStorage() {
         }),
       }));
     },
-    [update]
+    [update],
   );
 
   // ── Theme actions ───────────────────────────────────────────────
@@ -347,7 +355,7 @@ export function useStorage() {
     (theme: Partial<ThemeSettings>) => {
       update((s) => ({ ...s, theme: { ...s.theme, ...theme } }));
     },
-    [update]
+    [update],
   );
 
   const setPreferences = useCallback(
@@ -357,53 +365,68 @@ export function useStorage() {
         preferences: { ...s.preferences, ...preferences },
       }));
     },
-    [update]
+    [update],
   );
 
   // Import: replace state with imported data (validated, migrated)
   const importState = useCallback((data: unknown) => {
-    if (!data || typeof data !== "object") return false;
+    if (!data || typeof data !== 'object') return false;
     const d = data as Record<string, unknown>;
     if (!Array.isArray(d.folders)) return false;
     const s: AppState = {
       folders: d.folders.map((f: unknown) => {
         const fd = (f as Record<string, unknown>) ?? {};
-        const panels = (Array.isArray(fd.panels) ? fd.panels : []).map((p: unknown) => {
-          const pp = (p as Record<string, unknown>) ?? {};
-          return {
-            id: String(pp.id ?? generateId()),
-            title: String(pp.title ?? "Notes"),
-            content: String(pp.content ?? ""),
-            hidden: Boolean(pp.hidden ?? false),
-          };
-        });
+        const panels = (Array.isArray(fd.panels) ? fd.panels : []).map(
+          (p: unknown) => {
+            const pp = (p as Record<string, unknown>) ?? {};
+            return {
+              id: String(pp.id ?? generateId()),
+              title: String(pp.title ?? 'Notes'),
+              content: String(pp.content ?? ''),
+              hidden: Boolean(pp.hidden ?? false),
+            };
+          },
+        );
         return {
           id: String(fd.id ?? generateId()),
-          name: String(fd.name ?? "Folder"),
+          name: String(fd.name ?? 'Folder'),
           hidden: Boolean(fd.hidden ?? false),
           panels,
-          panelWidths: (Array.isArray(fd.panelWidths) ? fd.panelWidths : [50, 50]) as number[],
+          panelWidths: (Array.isArray(fd.panelWidths)
+            ? fd.panelWidths
+            : [50, 50]) as number[],
         };
       }) as Folder[],
-      activeFolderId: typeof d.activeFolderId === "string" ? d.activeFolderId : null,
+      activeFolderId:
+        typeof d.activeFolderId === 'string' ? d.activeFolderId : null,
       theme: {
         fontSize: Number((d.theme as Record<string, unknown>)?.fontSize) || 13,
       },
       preferences: {
         showPanelHeaders:
-          typeof (d.preferences as Record<string, unknown>)?.showPanelHeaders === "boolean"
-            ? Boolean((d.preferences as Record<string, unknown>).showPanelHeaders)
-            : typeof (d.theme as Record<string, unknown>)?.showPanelHeaders === "boolean"
+          typeof (d.preferences as Record<string, unknown>)
+            ?.showPanelHeaders === 'boolean'
+            ? Boolean(
+                (d.preferences as Record<string, unknown>).showPanelHeaders,
+              )
+            : typeof (d.theme as Record<string, unknown>)?.showPanelHeaders ===
+                'boolean'
               ? Boolean((d.theme as Record<string, unknown>).showPanelHeaders)
               : true,
         showTabBarScrollBar:
-          typeof (d.preferences as Record<string, unknown>)?.showTabBarScrollBar === "boolean"
-            ? Boolean((d.preferences as Record<string, unknown>).showTabBarScrollBar)
+          typeof (d.preferences as Record<string, unknown>)
+            ?.showTabBarScrollBar === 'boolean'
+            ? Boolean(
+                (d.preferences as Record<string, unknown>).showTabBarScrollBar,
+              )
             : false,
       },
     };
     const visibleFolders = s.folders.filter((f) => !f.hidden);
-    if (!s.activeFolderId || !visibleFolders.find((f) => f.id === s.activeFolderId)) {
+    if (
+      !s.activeFolderId ||
+      !visibleFolders.find((f) => f.id === s.activeFolderId)
+    ) {
       s.activeFolderId = visibleFolders[0]?.id ?? null;
     }
     setState(s);

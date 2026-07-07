@@ -4,7 +4,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 const FONT_SIZES = [12, 13, 14, 15, 16, 17, 18] as const;
 
@@ -28,13 +28,12 @@ export const FontSizeSelectSetting = ({
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="flex flex-col gap-y-0.5">
-        <label
-          className="text-xs font-medium"
-          htmlFor="font-size-select"
-        >
+        <label className="text-xs font-medium" htmlFor="font-size-select">
           Font size
         </label>
-        <span className="text-[11px] text-muted-foreground">Select the font size</span>
+        <span className="text-muted-foreground text-[11px]">
+          Select the font size
+        </span>
       </div>
       <Select
         value={String(selectedFontSize)}
@@ -43,14 +42,10 @@ export const FontSizeSelectSetting = ({
           if (isFontSize(nextFontSize)) onFontSizeChange(nextFontSize);
         }}
       >
-        <SelectTrigger
-          id="font-size-select"
-          size="sm"
-          className="w-24 bg-[var(--panel-bg)] text-xs text-[var(--text)]"
-        >
+        <SelectTrigger id="font-size-select" size="sm" className="w-26 text-xs">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent align="end" className="min-w-24">
+        <SelectContent align="end" className="min-w-26 p-0.5">
           {FONT_SIZES.map((size) => (
             <SelectItem key={size} value={String(size)} className="text-xs">
               {size}px
