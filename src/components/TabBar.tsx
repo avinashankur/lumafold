@@ -1,8 +1,8 @@
-// src/components/TabBar.tsx
 import { useState, useRef } from "react";
 import { Plus, X, EyeOff } from "lucide-react";
 import { Folder } from "../types";
 import { useModal } from "../context/ModalContext";
+import { cn } from "../lib/utils";
 
 interface Props {
   folders: Folder[];
@@ -13,6 +13,7 @@ interface Props {
   onRename: (id: string, name: string) => void;
   onHide: (id: string) => void;
   onReorder: (from: number, to: number) => void;
+  showScrollBar: boolean;
 }
 
 export default function TabBar({
@@ -24,6 +25,7 @@ export default function TabBar({
   onRename,
   onHide,
   onReorder,
+  showScrollBar,
 }: Props) {
   const { showConfirm } = useModal();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -48,7 +50,10 @@ export default function TabBar({
 
   return (
     <div
-      className="scrollbar-none flex items-center gap-0.5 overflow-x-auto overflow-y-hidden"
+      className={cn(
+        "flex items-center gap-x-1 overflow-x-auto overflow-y-hidden",
+        !showScrollBar && "scrollbar-none",
+      )}
       style={{ minHeight: 36 }}
     >
       {visibleFolders.map((folder, idx) => {
@@ -57,9 +62,17 @@ export default function TabBar({
           <div
             key={folder.id}
             draggable
-            onDragStart={() => { dragFrom.current = idx; }}
-            onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }}
-            onDragEnd={() => { dragFrom.current = null; setDragOverIdx(null); }}
+            onDragStart={() => {
+              dragFrom.current = idx;
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOverIdx(idx);
+            }}
+            onDragEnd={() => {
+              dragFrom.current = null;
+              setDragOverIdx(null);
+            }}
             onDrop={() => {
               if (dragFrom.current !== null && dragFrom.current !== idx) {
                 onReorder(dragFrom.current, idx);
@@ -72,9 +85,10 @@ export default function TabBar({
               group relative flex items-center gap-1 px-3 py-1.5 text-xs font-medium
               transition-colors duration-100 cursor-pointer select-none whitespace-nowrap flex-shrink-0
               rounded-md
-              ${isActive
-                ? "text-white"
-                : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--hover)]"
+              ${
+                isActive
+                  ? "text-white"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--hover)]"
               }
               ${dragOverIdx === idx ? "ring-1 ring-[var(--accent)]" : ""}
             `}
@@ -94,15 +108,25 @@ export default function TabBar({
                 className="w-20 bg-transparent outline-none border-b border-[var(--accent)] text-[var(--text)]"
               />
             ) : (
-              <span onDoubleClick={(e) => { e.stopPropagation(); startEdit(folder); }}>
+              <span
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  startEdit(folder);
+                }}
+              >
                 {folder.name}
               </span>
             )}
 
             {/* Hover actions — hide and delete */}
-            <span className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5 ${isActive ? "text-white/80 hover:text-white" : "text-[var(--text-muted)] hover:text-[var(--text)]"}`}>
+            <span
+              className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5 ${isActive ? "text-white/80 hover:text-white" : "text-[var(--text-muted)] hover:text-[var(--text)]"}`}
+            >
               <button
-                onClick={(e) => { e.stopPropagation(); onHide(folder.id); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onHide(folder.id);
+                }}
                 className="p-0.5 rounded text-inherit hover:text-inherit"
                 title="Hide folder"
               >
@@ -112,13 +136,15 @@ export default function TabBar({
                 onClick={(e) => {
                   e.stopPropagation();
                   const hasContent = folder.panels.some(
-                    (p) => p.content && p.content.replace(/<[^>]*>/g, "").trim() !== ""
+                    (p) =>
+                      p.content &&
+                      p.content.replace(/<[^>]*>/g, "").trim() !== "",
                   );
                   if (hasContent) {
                     showConfirm(
                       `Permanently delete "${folder.name}" and all its content?`,
                       () => onDelete(folder.id),
-                      { confirmLabel: "Delete", danger: true }
+                      { confirmLabel: "Delete", danger: true },
                     );
                   } else {
                     onDelete(folder.id);

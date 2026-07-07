@@ -16,13 +16,13 @@ export interface Folder {
 }
 
 export interface ThemeSettings {
-  mode: "light" | "dark";
   accent: string; // hex color
   fontSize: number; // px, applies to all editors (12–16)
 }
 
 export interface PreferencesSettings {
   showPanelHeaders: boolean;
+  showTabBarScrollBar: boolean;
 }
 
 export interface AppState {

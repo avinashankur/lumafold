@@ -56,13 +56,12 @@ const DEFAULT_STATE: AppState = {
   ],
   activeFolderId: null,
   theme: {
-    mode:
-      window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
     accent: "#6366f1",
     fontSize: 13,
   },
   preferences: {
     showPanelHeaders: true,
+    showTabBarScrollBar: false,
   },
 };
 
@@ -116,6 +115,12 @@ export function useStorage() {
       if (!s.preferences || typeof s.preferences.showPanelHeaders !== "boolean") {
         s.preferences = {
           showPanelHeaders: legacyTheme.showPanelHeaders ?? true,
+          showTabBarScrollBar: false,
+        };
+      } else if (typeof s.preferences.showTabBarScrollBar !== "boolean") {
+        s.preferences = {
+          ...s.preferences,
+          showTabBarScrollBar: false,
         };
       }
       setState(s);
@@ -383,7 +388,6 @@ export function useStorage() {
       }) as Folder[],
       activeFolderId: typeof d.activeFolderId === "string" ? d.activeFolderId : null,
       theme: {
-        mode: d.theme && typeof d.theme === "object" && (d.theme as Record<string, unknown>).mode === "light" ? "light" : "dark",
         accent: String((d.theme as Record<string, unknown>)?.accent ?? "#6366f1"),
         fontSize: Number((d.theme as Record<string, unknown>)?.fontSize) || 13,
       },
@@ -394,6 +398,10 @@ export function useStorage() {
             : typeof (d.theme as Record<string, unknown>)?.showPanelHeaders === "boolean"
               ? Boolean((d.theme as Record<string, unknown>).showPanelHeaders)
               : true,
+        showTabBarScrollBar:
+          typeof (d.preferences as Record<string, unknown>)?.showTabBarScrollBar === "boolean"
+            ? Boolean((d.preferences as Record<string, unknown>).showTabBarScrollBar)
+            : false,
       },
     };
     const visibleFolders = s.folders.filter((f) => !f.hidden);
