@@ -48,7 +48,7 @@ export const PreferencesSettings = ({
         <div>
           <div className="text-xs font-medium">Panel Scrollbar</div>
           <div className="text-muted-foreground mt-0.5 text-[11px]">
-            Show the vertical scrollbar on panels when text overflows.
+            Show the vertical scrollbar on panels when text overflows on scroll.
           </div>
         </div>
         <Switch

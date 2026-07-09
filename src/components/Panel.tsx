@@ -3,6 +3,7 @@ import { EyeOff, GripVertical } from 'lucide-react';
 import RichEditor from './RichEditor';
 import { Panel as PanelType } from '../types';
 import { cn } from '@/lib/utils';
+import { useScrolling } from '@/hooks/useScrolling';
 
 interface Props {
   panel: PanelType;
@@ -44,11 +45,14 @@ export default function Panel({
     if (draft.trim()) onRename(draft.trim());
   };
 
+  const isScrolling = useScrolling();
+
   return (
     <div
       className={cn(
         `flex h-full min-w-0 flex-col overflow-hidden rounded-lg transition-all duration-100`,
         isDragOver ? 'ring-primary ring-2' : '',
+        !isScrolling && 'scrollbar-thumb-transparent',
         !showPanelScrollBar && 'scrollbar-thumb-transparent',
       )}
       style={{
