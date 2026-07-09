@@ -27,7 +27,6 @@ export const PreferencesSettings = ({
           aria-label="Toggle panel headers"
         />
       </div>
-
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="text-xs font-medium">Tab bar scrollbar</div>
@@ -43,6 +42,25 @@ export const PreferencesSettings = ({
           aria-label="Toggle tab bar scrollbar"
         />
       </div>
+
+      {/* Show Panel Scrollbar */}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-xs font-medium">Panel Scrollbar</div>
+          <div className="text-muted-foreground mt-0.5 text-[11px]">
+            Show the vertical scrollbar on panels when text overflows.
+          </div>
+        </div>
+        <Switch
+          checked={preferences.showPanelScrollBar}
+          onCheckedChange={(checked) =>
+            onPreferencesChange({ showPanelScrollBar: checked })
+          }
+          aria-label="Toggle tab bar scrollbar"
+        />
+      </div>
+
+      {/* TBD: Text wrapping */}
     </div>
   );
 };

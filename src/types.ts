@@ -1,5 +1,3 @@
-// src/types.ts
-
 export interface Panel {
   id: string;
   title: string;
@@ -22,6 +20,7 @@ export interface ThemeSettings {
 export interface PreferencesSettingTypes {
   showPanelHeaders: boolean;
   showTabBarScrollBar: boolean;
+  showPanelScrollBar: boolean;
 }
 
 export interface AppState {

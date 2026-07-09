@@ -1,8 +1,8 @@
-// src/components/Panel.tsx
-import { useState, useRef } from "react";
-import { EyeOff, GripVertical } from "lucide-react";
-import RichEditor from "./RichEditor";
-import { Panel as PanelType } from "../types";
+import { useState, useRef } from 'react';
+import { EyeOff, GripVertical } from 'lucide-react';
+import RichEditor from './RichEditor';
+import { Panel as PanelType } from '../types';
+import { cn } from '@/lib/utils';
 
 interface Props {
   panel: PanelType;
@@ -14,6 +14,7 @@ interface Props {
   onDrop: (e: React.DragEvent) => void;
   isDragOver: boolean;
   showHeader: boolean;
+  showPanelScrollBar: boolean;
 }
 
 export default function Panel({
@@ -26,6 +27,7 @@ export default function Panel({
   onDrop,
   isDragOver,
   showHeader,
+  showPanelScrollBar,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(panel.title);
@@ -44,29 +46,31 @@ export default function Panel({
 
   return (
     <div
-      className={`flex flex-col h-full min-w-0 rounded-lg overflow-hidden transition-all duration-100 ${
-        isDragOver ? "ring-2 ring-[var(--primary)]" : ""
-      }`}
+      className={cn(
+        `flex h-full min-w-0 flex-col overflow-hidden rounded-lg transition-all duration-100`,
+        isDragOver ? 'ring-primary ring-2' : '',
+        !showPanelScrollBar && 'scrollbar-thumb-transparent',
+      )}
       style={{
-        background: "var(--panel-bg)",
-        border: "1px solid var(--border)",
+        background: 'var(--panel-bg)',
+        border: '1px solid var(--border)',
       }}
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
       {showHeader && (
         <div
-          className="flex items-center gap-1.5 px-2.5 py-1.5 flex-shrink-0 group"
+          className="group flex shrink-0 items-center gap-1.5 px-2.5 py-1.5"
           style={{
-            background: "var(--panel-header-bg)",
-            borderBottom: "1px solid var(--border)",
+            background: 'var(--panel-header-bg)',
+            borderBottom: '1px solid var(--border)',
           }}
         >
           {/* Drag handle */}
           <div
             draggable
             onDragStart={onDragStart}
-            className="cursor-grab text-[var(--text-muted)] opacity-0 group-hover:opacity-40 transition-opacity active:cursor-grabbing flex-shrink-0"
+            className="shrink-0 cursor-grab text-(--text-muted) opacity-0 transition-opacity group-hover:opacity-40 active:cursor-grabbing"
           >
             <GripVertical size={13} />
           </div>
@@ -79,14 +83,14 @@ export default function Panel({
               onChange={(e) => setDraft(e.target.value)}
               onBlur={commitEdit}
               onKeyDown={(e) => {
-                if (e.key === "Enter") commitEdit();
-                if (e.key === "Escape") setEditing(false);
+                if (e.key === 'Enter') commitEdit();
+                if (e.key === 'Escape') setEditing(false);
               }}
-              className="flex-1 text-xs font-medium bg-transparent outline-none border-b border-[var(--primary)] text-[var(--text)]"
+              className="border-primary flex-1 border-b bg-transparent text-xs font-medium text-(--text) outline-none"
             />
           ) : (
             <span
-              className="flex-1 text-xs font-medium text-[var(--text-muted)] cursor-pointer select-none truncate"
+              className="flex-1 cursor-pointer truncate text-xs font-medium text-(--text-muted) select-none"
               onDoubleClick={startEdit}
               title="Double-click to rename"
             >
@@ -97,7 +101,7 @@ export default function Panel({
           {/* Hide button — always present on hover, hides panel (data preserved) */}
           <button
             onClick={onHide}
-            className="opacity-0 group-hover:opacity-60 hover:!opacity-100 text-[var(--text-muted)] hover:text-[var(--text)] transition-all flex-shrink-0"
+            className="shrink-0 text-(--text-muted) opacity-0 transition-all group-hover:opacity-60 hover:text-(--text) hover:opacity-100!"
             title="Hide panel (data is preserved)"
           >
             <EyeOff size={12} />
@@ -106,7 +110,7 @@ export default function Panel({
       )}
 
       {/* Editor — fills remaining space */}
-      <div className="flex-1 overflow-hidden min-h-0">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <RichEditor content={panel.content} onChange={onContentChange} />
       </div>
     </div>

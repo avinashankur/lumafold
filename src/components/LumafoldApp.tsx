@@ -68,11 +68,8 @@ export default function LumafoldApp() {
 
   if (!loaded || !state) {
     return (
-      <div
-        className="flex h-full w-full items-center justify-center"
-        style={{ background: 'var(--bg)' }}
-      >
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+      <div className="bg-background flex h-full w-full items-center justify-center">
+        <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
       </div>
     );
   }
@@ -87,14 +84,8 @@ export default function LumafoldApp() {
   return (
     <>
       <LumafoldThemeVars fontSize={state.theme.fontSize ?? 13} />
-      <div
-        className="flex h-full w-full flex-col overflow-hidden font-sans"
-        style={{ background: 'var(--bg)' }}
-      >
-        <div
-          className="flex flex-shrink-0 items-center gap-2 px-2 py-1"
-          style={{ background: 'var(--tab-bar-bg)' }}
-        >
+      <div className="bg-background flex h-full w-full flex-col overflow-hidden font-sans">
+        <div className="bg-background flex shrink-0 items-center gap-2 px-2 py-1">
           <div className="min-w-0 flex-1 overflow-hidden">
             <TabBar
               folders={state.folders}
@@ -109,10 +100,10 @@ export default function LumafoldApp() {
             />
           </div>
 
-          <div className="flex flex-shrink-0 items-center gap-0.5">
+          <div className="flex shrink-0 items-center gap-0.5">
             <button
               onClick={() => setShowFoldersModal(true)}
-              className="rounded p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]"
+              className="text-muted-foreground hover:bg-accent hover:text-foreground rounded p-1.5 transition-colors"
               title="Manage folders"
             >
               <FolderOpen size={13} />
@@ -121,7 +112,7 @@ export default function LumafoldApp() {
             {activeFolder && (
               <button
                 onClick={() => setShowPanelsModal(true)}
-                className="rounded p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]"
+                className="text-muted-foreground hover:bg-accent hover:text-foreground rounded p-1.5 transition-colors"
                 title="Panels (add, unhide)"
               >
                 <LayoutGrid size={13} />
@@ -130,7 +121,7 @@ export default function LumafoldApp() {
 
             <button
               onClick={() => setShowFormatModal(true)}
-              className="rounded p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]"
+              className="text-muted-foreground hover:bg-accent hover:text-foreground rounded p-1.5 transition-colors"
               title="Format (bold, headings, etc.)"
             >
               <Type size={13} />
@@ -148,7 +139,7 @@ export default function LumafoldApp() {
                     if (w) w.resizeTo(screen.availWidth, screen.availHeight);
                   }
                 }}
-                className="rounded p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]"
+                className="text-muted-foreground hover:bg-accent hover:text-foreground rounded p-1.5 transition-colors"
                 title="Open fullscreen tab"
               >
                 <Maximize2 size={13} />
@@ -157,7 +148,7 @@ export default function LumafoldApp() {
 
             <button
               onClick={() => setShowSettings(true)}
-              className="rounded p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]"
+              className="text-muted-foreground hover:bg-accent hover:text-foreground rounded p-1.5 transition-colors"
               title="Settings (Ctrl+,)"
             >
               <SettingsIcon size={13} />
@@ -168,16 +159,10 @@ export default function LumafoldApp() {
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {!activeFolder ? (
             <div className="flex h-full flex-col items-center justify-center gap-3">
-              <p className="text-sm text-[var(--text-muted)]">
-                No folder selected
-              </p>
+              <p className="text-sm text-(--text-muted)">No folder selected</p>
               <button
                 onClick={store.addFolder}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-white transition-colors"
-                style={{
-                  background: 'var(--primary)',
-                  color: 'var(--primary-foreground)',
-                }}
+                className="bg-primary text-primary-foreground flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
               >
                 <Plus size={14} /> New Folder
               </button>
@@ -187,11 +172,7 @@ export default function LumafoldApp() {
               {visiblePanels.map((panel, idx) => {
                 const realIdx = activeFolder.panels.indexOf(panel);
                 return (
-                  <div
-                    key={panel.id}
-                    className="h-full min-w-0"
-                    style={{ flex: '1 1 0' }}
-                  >
+                  <div key={panel.id} className="h-full min-w-0 flex-1">
                     <Panel
                       panel={panel}
                       onHide={() =>
@@ -230,6 +211,7 @@ export default function LumafoldApp() {
                       }}
                       isDragOver={dragOverPanel === idx}
                       showHeader={state.preferences.showPanelHeaders}
+                      showPanelScrollBar={state.preferences.showPanelScrollBar}
                     />
                   </div>
                 );

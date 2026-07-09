@@ -1,4 +1,3 @@
-// src/hooks/useStorage.ts
 import { useState, useEffect, useCallback } from 'react';
 import {
   AppState,
@@ -61,6 +60,7 @@ const DEFAULT_STATE: AppState = {
   preferences: {
     showPanelHeaders: true,
     showTabBarScrollBar: false,
+    showPanelScrollBar: true,
   },
 };
 
@@ -117,19 +117,22 @@ export function useStorage() {
       const legacyTheme = s.theme as ThemeSettings & {
         showPanelHeaders?: boolean;
       };
-      if (
-        !s.preferences ||
-        typeof s.preferences.showPanelHeaders !== 'boolean'
-      ) {
+      if (!s.preferences) {
         s.preferences = {
           showPanelHeaders: legacyTheme.showPanelHeaders ?? true,
           showTabBarScrollBar: false,
+          showPanelScrollBar: true,
         };
-      } else if (typeof s.preferences.showTabBarScrollBar !== 'boolean') {
-        s.preferences = {
-          ...s.preferences,
-          showTabBarScrollBar: false,
-        };
+      } else {
+        if (typeof s.preferences.showPanelHeaders !== 'boolean') {
+          s.preferences.showPanelHeaders = legacyTheme.showPanelHeaders ?? true;
+        }
+        if (typeof s.preferences.showTabBarScrollBar !== 'boolean') {
+          s.preferences.showTabBarScrollBar = false;
+        }
+        if (typeof s.preferences.showPanelScrollBar !== 'boolean') {
+          s.preferences.showPanelScrollBar = true;
+        }
       }
       setState(s);
       setLoaded(true);
@@ -420,6 +423,13 @@ export function useStorage() {
                 (d.preferences as Record<string, unknown>).showTabBarScrollBar,
               )
             : false,
+        showPanelScrollBar:
+          typeof (d.preferences as Record<string, unknown>)
+            ?.showPanelScrollBar === 'boolean'
+            ? Boolean(
+                (d.preferences as Record<string, unknown>).showPanelScrollBar,
+              )
+            : true,
       },
     };
     const visibleFolders = s.folders.filter((f) => !f.hidden);
