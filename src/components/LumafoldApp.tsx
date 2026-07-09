@@ -141,7 +141,7 @@ export default function LumafoldApp() {
                 onClick={() => {
                   if (typeof chrome !== 'undefined' && chrome.tabs) {
                     chrome.tabs.create({
-                      url: chrome.runtime.getURL('popup.html'),
+                      url: chrome.runtime.getURL('index.html'),
                     });
                   } else {
                     const w = window.open(window.location.href, '_blank', '');

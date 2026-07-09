@@ -2,8 +2,8 @@
 
 // Open fullscreen tab via keyboard shortcut
 chrome.commands.onCommand.addListener((command) => {
-  if (command === "open-fullscreen") {
-    chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
+  if (command === 'open-fullscreen') {
+    chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
   }
 });
 

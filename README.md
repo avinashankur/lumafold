@@ -48,7 +48,7 @@ Run the Vite dev server:
 npm run dev
 ```
 
-For browser-only development, open `http://localhost:5173/popup.html`.
+For browser-only development, open `http://localhost:5173/`.
 
 If you want to test the extension in Chrome, build first and load the generated `dist` folder as an unpacked extension.
 
@@ -112,7 +112,7 @@ Lumafold supports two display modes:
 lumafold/
 ├─ manifest.json        # MV3 manifest, permissions, and command bindings
 ├─ background.js        # Service worker for the fullscreen command
-├─ popup.html           # Extension entry page
+├─ index.html           # Extension entry page
 ├─ public/
 │  └─ init.js           # Early bootstrap script
 ├─ src/

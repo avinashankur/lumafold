@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "A minimal, powerful notes app with folders, panels, and rich text editing.",
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "index.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
