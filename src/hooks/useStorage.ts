@@ -273,6 +273,23 @@ export function useStorage() {
     [update],
   );
 
+  // Delete panel permanently
+  const deletePanel = useCallback(
+    (folderId: string, panelId: string) => {
+      update((s) => ({
+        ...s,
+        folders: s.folders.map((f) => {
+          if (f.id !== folderId) return f;
+          return {
+            ...f,
+            panels: f.panels.filter((p) => p.id !== panelId),
+          };
+        }),
+      }));
+    },
+    [update],
+  );
+
   // Unhide panel
   const unhidePanelById = useCallback(
     (folderId: string, panelId: string) => {
@@ -456,6 +473,7 @@ export function useStorage() {
     addPanel,
     hidePanelById,
     unhidePanelById,
+    deletePanel,
     renamePanel,
     updatePanelContent,
     reorderPanels,

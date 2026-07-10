@@ -1,13 +1,15 @@
 import { useState, useRef } from 'react';
-import { EyeOff, GripVertical } from 'lucide-react';
+import { EyeOff, GripVertical, Trash2 } from 'lucide-react';
 import RichEditor from './RichEditor';
 import { Panel as PanelType } from '../types';
 import { cn } from '@/lib/utils';
 import { useScrolling } from '@/hooks/useScrolling';
+import { useModal } from '../context/ModalContext';
 
 interface Props {
   panel: PanelType;
   onHide: () => void;
+  onDelete: () => void;
   onRename: (title: string) => void;
   onContentChange: (content: string) => void;
   onDragStart: (e: React.DragEvent) => void;
@@ -21,6 +23,7 @@ interface Props {
 export default function Panel({
   panel,
   onHide,
+  onDelete,
   onRename,
   onContentChange,
   onDragStart,
@@ -33,6 +36,21 @@ export default function Panel({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(panel.title);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { showConfirm } = useModal();
+
+  const handleDelete = () => {
+    const hasContent =
+      panel.content && panel.content.replace(/<[^>]*>/g, '').trim() !== '';
+    if (hasContent) {
+      showConfirm(
+        `Permanently delete "${panel.title}" and its content?`,
+        onDelete,
+        { confirmLabel: 'Delete', danger: true },
+      );
+    } else {
+      onDelete();
+    }
+  };
 
   const startEdit = () => {
     setDraft(panel.title);
@@ -109,6 +127,15 @@ export default function Panel({
             title="Hide panel (data is preserved)"
           >
             <EyeOff size={12} />
+          </button>
+
+          {/* Delete button — permanently deletes panel */}
+          <button
+            onClick={handleDelete}
+            className="shrink-0 text-(--text-muted) opacity-0 transition-all group-hover:opacity-60 hover:text-red-400 hover:opacity-100!"
+            title="Delete panel"
+          >
+            <Trash2 size={12} />
           </button>
         </div>
       )}

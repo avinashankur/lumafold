@@ -1,8 +1,7 @@
-// src/components/PanelsModal.tsx
-import { useEffect } from "react";
-import { X, Plus, Eye, EyeOff } from "lucide-react";
-import type { Panel } from "../types";
-import { useModal } from "../context/ModalContext";
+import { useEffect } from 'react';
+import { X, Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
+import type { Panel } from '../types';
+import { useModal } from '../context/ModalContext';
 
 interface Props {
   canAddPanel: boolean;
@@ -11,6 +10,7 @@ interface Props {
   panels: Panel[];
   onHidePanel: (panelId: string) => void;
   onUnhidePanel: (panelId: string) => void;
+  onDeletePanel: (panelId: string) => void;
   onClose: () => void;
 }
 
@@ -21,47 +21,79 @@ export default function PanelsModal({
   panels,
   onHidePanel,
   onUnhidePanel,
+  onDeletePanel,
   onClose,
 }: Props) {
-  const { showAlert } = useModal();
+  const { showAlert, showConfirm } = useModal();
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
   const handleUnhide = (panelId: string) => {
     if (!canUnhide) {
-      showAlert("Hide another panel first — max 3 visible panels.");
+      showAlert('Hide another panel first — max 3 visible panels.');
       return;
     }
     onUnhidePanel(panelId);
   };
 
+  const handleDelete = (panel: Panel) => {
+    const hasContent =
+      panel.content && panel.content.replace(/<[^>]*>/g, '').trim() !== '';
+    if (hasContent) {
+      showConfirm(
+        `Permanently delete "${panel.title}" and all its content?`,
+        () => onDeletePanel(panel.id),
+        { confirmLabel: 'Delete', danger: true },
+      );
+    } else {
+      onDeletePanel(panel.id);
+    }
+  };
+
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
+      className="fixed inset-0 z-60 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
       onClick={onClose}
     >
       <div
-        className="rounded-xl shadow-2xl w-72 overflow-hidden"
-        style={{ background: "var(--panel-bg)", border: "1px solid var(--border)" }}
+        className="w-72 overflow-hidden rounded-xl shadow-2xl"
+        style={{
+          background: 'var(--panel-bg)',
+          border: '1px solid var(--border)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--border)" }}>
-          <span className="text-sm font-semibold text-[var(--text)]">Panels</span>
-          <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
+        <div
+          className="flex items-center justify-between border-b px-4 py-3"
+          style={{ borderColor: 'var(--border)' }}
+        >
+          <span className="text-sm font-semibold text-(--text)">Panels</span>
+          <button
+            onClick={onClose}
+            className="text-(--text-muted) transition-colors hover:text-(--text)"
+          >
             <X size={15} />
           </button>
         </div>
-        <div className="p-4 space-y-4">
+        <div className="space-y-4 p-4">
           {canAddPanel && (
             <button
-              onClick={() => { onAddPanel(); onClose(); }}
-              className="flex items-center gap-2 w-full px-3 py-2 rounded-lg border border-dashed text-sm transition-colors"
-              style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+              onClick={() => {
+                onAddPanel();
+                onClose();
+              }}
+              className="flex w-full items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-sm transition-colors"
+              style={{
+                borderColor: 'var(--border)',
+                color: 'var(--text-muted)',
+              }}
             >
               <Plus size={14} />
               Add panel (max 3)
@@ -69,45 +101,58 @@ export default function PanelsModal({
           )}
           {panels.length > 0 && (
             <div>
-              <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider block mb-2">
+              <span className="mb-2 block text-xs font-medium tracking-wider text-(--text-muted) uppercase">
                 Panels
               </span>
               <div className="flex flex-col gap-1">
                 {panels.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg select-none"
-                    style={{ background: "var(--hover)" }}
+                    className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 select-none"
+                    style={{ background: 'var(--hover)' }}
                   >
-                    <span className={`text-sm truncate pointer-events-none flex-1 ${p.hidden ? "text-[var(--text-muted)]" : "text-[var(--text)]"}`}>
+                    <span
+                      className={`pointer-events-none flex-1 truncate text-sm ${p.hidden ? 'text-(--text-muted)' : 'text-(--text)'}`}
+                    >
                       {p.title}
                     </span>
-                    {p.hidden ? (
+                    <div className="flex shrink-0 items-center gap-1">
+                      {p.hidden ? (
+                        <button
+                          onClick={() => handleUnhide(p.id)}
+                          className="text-primary hover:bg-primary hover:text-primary-foreground flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors"
+                          title="Unhide this panel"
+                        >
+                          <Eye size={12} />
+                          Unhide
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => onHidePanel(p.id)}
+                          className="hover:bg-border flex items-center gap-1 rounded px-2 py-1 text-xs text-(--text-muted) transition-colors hover:text-(--text)"
+                          title="Hide this panel"
+                        >
+                          <EyeOff size={12} />
+                          Hide
+                        </button>
+                      )}
                       <button
-                        onClick={() => handleUnhide(p.id)}
-                        className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors shrink-0 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
-                        title="Unhide this panel"
+                        onClick={() => handleDelete(p)}
+                        className="flex items-center gap-1 rounded px-2 py-1 text-xs text-(--text-muted) transition-colors hover:bg-red-400/10 hover:text-red-400"
+                        title="Delete panel"
                       >
-                        <Eye size={12} />
-                        Unhide
+                        <Trash2 size={12} />
                       </button>
-                    ) : (
-                      <button
-                        onClick={() => onHidePanel(p.id)}
-                        className="flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors shrink-0 text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--border)]"
-                        title="Hide this panel"
-                      >
-                        <EyeOff size={12} />
-                        Hide
-                      </button>
-                    )}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
           {panels.length === 0 && !canAddPanel && (
-            <p className="text-sm text-[var(--text-muted)]">No panel actions available.</p>
+            <p className="text-sm text-(--text-muted)">
+              No panel actions available.
+            </p>
           )}
         </div>
       </div>

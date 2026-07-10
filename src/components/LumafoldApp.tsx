@@ -167,6 +167,30 @@ export default function LumafoldApp() {
                 <Plus size={14} /> New Folder
               </button>
             </div>
+          ) : activeFolder.panels.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center gap-3">
+              <p className="text-sm text-(--text-muted)">
+                No panels in this folder
+              </p>
+              <button
+                onClick={() => store.addPanel(activeFolder.id)}
+                className="bg-primary text-primary-foreground flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+              >
+                <Plus size={14} /> Add Panel
+              </button>
+            </div>
+          ) : visiblePanels.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center gap-3">
+              <p className="text-sm text-(--text-muted)">
+                All panels in this folder are hidden
+              </p>
+              <button
+                onClick={() => setShowPanelsModal(true)}
+                className="bg-primary text-primary-foreground flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+              >
+                <LayoutGrid size={14} /> Manage Panels
+              </button>
+            </div>
           ) : (
             <div className="flex flex-1 gap-2 overflow-hidden p-2 pt-0">
               {visiblePanels.map((panel, idx) => {
@@ -177,6 +201,9 @@ export default function LumafoldApp() {
                       panel={panel}
                       onHide={() =>
                         store.hidePanelById(activeFolder.id, panel.id)
+                      }
+                      onDelete={() =>
+                        store.deletePanel(activeFolder.id, panel.id)
                       }
                       onRename={(title) =>
                         store.renamePanel(activeFolder.id, panel.id, title)
@@ -240,6 +267,9 @@ export default function LumafoldApp() {
               }
               onUnhidePanel={(panelId) =>
                 store.unhidePanelById(activeFolder.id, panelId)
+              }
+              onDeletePanel={(panelId) =>
+                store.deletePanel(activeFolder.id, panelId)
               }
               onClose={() => setShowPanelsModal(false)}
             />
