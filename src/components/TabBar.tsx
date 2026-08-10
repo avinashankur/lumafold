@@ -81,7 +81,12 @@ export default function TabBar({
       )}
       style={{ minHeight: 36 }}
     >
-      <div className="flex items-center gap-x-1 overflow-x-auto overflow-y-hidden">
+      <div
+        className={cn(
+          'flex items-center gap-x-1 overflow-x-auto overflow-y-hidden',
+          !showScrollBar && 'scrollbar-none',
+        )}
+      >
         {visibleFolders.map((folder, idx) => {
           const isActive = folder.id === activeFolderId;
           return (
