@@ -23,9 +23,19 @@ export interface PreferencesSettingTypes {
   showPanelScrollBar: boolean;
 }
 
+export type AIProvider = 'gemini' | 'openai' | 'custom';
+
+export interface AISettings {
+  provider: AIProvider | '';
+  apiKey: string;
+  model: string;
+  customBaseURL: string;
+}
+
 export interface AppState {
   folders: Folder[];
   activeFolderId: string | null;
   theme: ThemeSettings;
   preferences: PreferencesSettingTypes;
+  ai: AISettings;
 }

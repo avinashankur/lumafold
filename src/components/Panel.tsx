@@ -1,17 +1,21 @@
 import { useState, useRef } from 'react';
 import { EyeOff, GripVertical, Trash2 } from 'lucide-react';
 import RichEditor from './RichEditor';
-import { Panel as PanelType } from '../types';
+import { Panel as PanelType, AISettings } from '../types';
+import { AICommand } from '@/lib/ai/commands';
+import { AICommandMenu } from './ai/AICommandMenu';
 import { cn } from '@/lib/utils';
 import { useScrolling } from '@/hooks/useScrolling';
 import { useModal } from '../context/ModalContext';
 
 interface Props {
   panel: PanelType;
+  aiSettings: AISettings;
   onHide: () => void;
   onDelete: () => void;
   onRename: (title: string) => void;
   onContentChange: (content: string) => void;
+  onAIAccept: (content: string) => void;
   onDragStart: (e: React.DragEvent) => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
@@ -22,10 +26,12 @@ interface Props {
 
 export default function Panel({
   panel,
+  aiSettings,
   onHide,
   onDelete,
   onRename,
   onContentChange,
+  onAIAccept,
   onDragStart,
   onDragOver,
   onDrop,
@@ -64,6 +70,16 @@ export default function Panel({
   };
 
   const isScrolling = useScrolling();
+
+  const handleAIAccept = (result: string, command: AICommand) => {
+    if (command === 'title') {
+      // Title result is plain text, not HTML — rename the panel
+      const plain = result.replace(/<[^>]*>/g, '').trim();
+      if (plain) onRename(plain);
+    } else {
+      onAIAccept(result);
+    }
+  };
 
   return (
     <div
@@ -140,9 +156,15 @@ export default function Panel({
         </div>
       )}
 
-      {/* Editor — fills remaining space */}
-      <div className="min-h-0 flex-1 overflow-hidden">
-        <RichEditor content={panel.content} onChange={onContentChange} />
+      {/* Editor — wrapped in AICommandMenu for right-click AI access */}
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        <AICommandMenu
+          panelContent={panel.content}
+          aiSettings={aiSettings}
+          onAccept={handleAIAccept}
+        >
+          <RichEditor content={panel.content} onChange={onContentChange} />
+        </AICommandMenu>
       </div>
     </div>
   );

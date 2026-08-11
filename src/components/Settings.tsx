@@ -1,18 +1,28 @@
 import { useState } from 'react';
 import { cn } from '../lib/utils';
 import type { AppState } from '../types';
-import { Database, Keyboard, Palette, Settings2, X } from 'lucide-react';
-import { PreferencesSettingTypes, ThemeSettings } from '../types';
+import {
+  Database,
+  Keyboard,
+  Palette,
+  Settings2,
+  Sparkles,
+  X,
+} from 'lucide-react';
+import { AISettings, PreferencesSettingTypes, ThemeSettings } from '../types';
 import { DataSettings } from './settings/data';
 import { AppearanceSettings } from './settings/appearance/main';
 import { PreferencesSettings } from './settings/preferences';
 import { ShortcutsSettings } from './settings/shortcuts';
+import { AISettingsSection } from './settings/ai';
 
 interface Props {
   theme: ThemeSettings;
   onThemeChange: (t: Partial<ThemeSettings>) => void;
   preferences: PreferencesSettingTypes;
   onPreferencesChange: (preferences: Partial<PreferencesSettingTypes>) => void;
+  aiSettings: AISettings;
+  onAISettingsChange: (settings: Partial<AISettings>) => void;
   onClose: () => void;
   state: AppState;
   onImportState: (data: unknown) => boolean;
@@ -23,12 +33,14 @@ export default function Settings({
   onThemeChange,
   preferences,
   onPreferencesChange,
+  aiSettings,
+  onAISettingsChange,
   onClose,
   state,
   onImportState,
 }: Props) {
   const [activeSection, setActiveSection] = useState<
-    'appearance' | 'preferences' | 'data' | 'shortcuts'
+    'appearance' | 'preferences' | 'data' | 'shortcuts' | 'ai'
   >('appearance');
 
   const sections = [
@@ -36,6 +48,7 @@ export default function Settings({
     { id: 'preferences' as const, label: 'Preferences', icon: Settings2 },
     { id: 'data' as const, label: 'Data', icon: Database },
     { id: 'shortcuts' as const, label: 'Shortcuts', icon: Keyboard },
+    { id: 'ai' as const, label: 'AI', icon: Sparkles },
   ];
 
   return (
@@ -120,6 +133,13 @@ export default function Settings({
             )}
 
             {activeSection === 'shortcuts' && <ShortcutsSettings />}
+
+            {activeSection === 'ai' && (
+              <AISettingsSection
+                aiSettings={aiSettings}
+                onAISettingsChange={onAISettingsChange}
+              />
+            )}
           </div>
         </section>
       </div>

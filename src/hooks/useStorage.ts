@@ -1,11 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
+  AISettings,
   AppState,
   Folder,
   Panel,
   PreferencesSettingTypes,
   ThemeSettings,
 } from '../types';
+
+const DEFAULT_AI_SETTINGS: AISettings = {
+  provider: '',
+  apiKey: '',
+  model: '',
+  customBaseURL: '',
+};
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
 
@@ -62,6 +70,7 @@ const DEFAULT_STATE: AppState = {
     showTabBarScrollBar: false,
     showPanelScrollBar: true,
   },
+  ai: DEFAULT_AI_SETTINGS,
 };
 
 async function loadState(): Promise<AppState> {
@@ -133,6 +142,12 @@ export function useStorage() {
         if (typeof s.preferences.showPanelScrollBar !== 'boolean') {
           s.preferences.showPanelScrollBar = true;
         }
+      }
+      // Migrate: add ai settings for legacy data
+      if (!s.ai) {
+        s.ai = DEFAULT_AI_SETTINGS;
+      } else {
+        s.ai = { ...DEFAULT_AI_SETTINGS, ...s.ai };
       }
       setState(s);
       setLoaded(true);
@@ -378,6 +393,16 @@ export function useStorage() {
     [update],
   );
 
+  const setAISettings = useCallback(
+    (ai: Partial<AISettings>) => {
+      update((s) => ({
+        ...s,
+        ai: { ...s.ai, ...ai },
+      }));
+    },
+    [update],
+  );
+
   const setPreferences = useCallback(
     (preferences: Partial<PreferencesSettingTypes>) => {
       update((s) => ({
@@ -448,6 +473,10 @@ export function useStorage() {
               )
             : true,
       },
+      ai: {
+        ...DEFAULT_AI_SETTINGS,
+        ...((d.ai as Partial<typeof DEFAULT_AI_SETTINGS>) ?? {}),
+      },
     };
     const visibleFolders = s.folders.filter((f) => !f.hidden);
     if (
@@ -479,6 +508,7 @@ export function useStorage() {
     reorderPanels,
     setTheme,
     setPreferences,
+    setAISettings,
     importState,
   };
 }

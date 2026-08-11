@@ -199,6 +199,7 @@ export default function LumafoldApp() {
                   <div key={panel.id} className="h-full min-w-0 flex-1">
                     <Panel
                       panel={panel}
+                      aiSettings={state.ai}
                       onHide={() =>
                         store.hidePanelById(activeFolder.id, panel.id)
                       }
@@ -209,6 +210,13 @@ export default function LumafoldApp() {
                         store.renamePanel(activeFolder.id, panel.id, title)
                       }
                       onContentChange={(content) =>
+                        store.updatePanelContent(
+                          activeFolder.id,
+                          panel.id,
+                          content,
+                        )
+                      }
+                      onAIAccept={(content) =>
                         store.updatePanelContent(
                           activeFolder.id,
                           panel.id,
@@ -297,6 +305,8 @@ export default function LumafoldApp() {
             onThemeChange={store.setTheme}
             preferences={state.preferences}
             onPreferencesChange={store.setPreferences}
+            aiSettings={state.ai}
+            onAISettingsChange={store.setAISettings}
             onClose={() => setShowSettings(false)}
             state={state}
             onImportState={store.importState}
