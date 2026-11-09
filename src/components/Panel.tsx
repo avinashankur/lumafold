@@ -90,8 +90,8 @@ export default function Panel({
   return (
     <div
       className={cn(
-        'group/panel relative flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-[var(--surface-1)] transition-all duration-120',
-        isDragOver && 'z-10 ring-1 ring-[var(--accent)]',
+        'group/panel relative flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-[var(--panel-bg)] transition-all duration-120',
+        isDragOver && 'z-10 ring-1 ring-[var(--accent)] ring-inset',
         !isScrolling && 'scrollbar-thumb-transparent',
         !showPanelScrollBar && 'scrollbar-thumb-transparent',
       )}
@@ -99,7 +99,7 @@ export default function Panel({
       onDrop={onDrop}
     >
       {showHeader && (
-        <div className="flex h-[34px] shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-1)] px-3.5">
+        <div className="flex h-[34px] shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--panel-bg)] px-3.5">
           {/* Left: Drag grip & title */}
           <div className="flex min-w-0 items-center gap-2">
             <div
@@ -142,17 +142,27 @@ export default function Panel({
 
             <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover/panel:opacity-100">
               <button
-                onClick={onHide}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onHide();
+                }}
                 className="flex h-5 w-5 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
                 title="Hide panel (content is preserved)"
+                aria-label="Hide panel"
               >
                 <EyeOff size={11} />
               </button>
 
               <button
-                onClick={handleDelete}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete();
+                }}
                 className="flex h-5 w-5 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-red-400"
                 title="Delete panel"
+                aria-label="Delete panel"
               >
                 <Trash2 size={11} />
               </button>

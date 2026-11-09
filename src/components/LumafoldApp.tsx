@@ -5,6 +5,7 @@ import {
   FolderOpen,
   LayoutGrid,
   Maximize2,
+  Plus,
   Settings as SettingsIcon,
 } from 'lucide-react';
 import { useStorage } from '@/hooks/useStorage';
@@ -15,6 +16,7 @@ import PanelsModal from '@/components/PanelsModal';
 import FoldersModal from '@/components/FoldersModal';
 import { useTheme } from '@/components/theme-provider';
 import { LumafoldThemeVars } from '@/providers/lumafold-theme-vars';
+import { cn } from '@/lib/utils';
 
 export default function LumafoldApp() {
   const store = useStorage();
@@ -22,6 +24,9 @@ export default function LumafoldApp() {
   const [showSettings, setShowSettings] = useState(false);
   const [showPanelsModal, setShowPanelsModal] = useState(false);
   const [showFoldersModal, setShowFoldersModal] = useState(false);
+  const [resizingDividerIdx, setResizingDividerIdx] = useState<number | null>(
+    null,
+  );
   const dragPanelFrom = useRef<number | null>(null);
   const [dragOverPanel, setDragOverPanel] = useState<number | null>(null);
 
@@ -35,6 +40,13 @@ export default function LumafoldApp() {
   const workspaceRef = useRef<HTMLDivElement>(null);
 
   const { state, loaded } = store;
+
+  useEffect(() => {
+    return () => {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, []);
 
   useEffect(() => {
     if (!state) return;
@@ -92,6 +104,9 @@ export default function LumafoldApp() {
         startWidths: currentWidths,
         containerWidth: workspaceRef.current.clientWidth,
       };
+      setResizingDividerIdx(idx);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
 
       const onMouseMove = (moveEvent: MouseEvent) => {
         if (!resizeState.current || !state.activeFolderId) return;
@@ -119,6 +134,9 @@ export default function LumafoldApp() {
 
       const onMouseUp = () => {
         resizeState.current = null;
+        setResizingDividerIdx(null);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
       };
@@ -158,9 +176,9 @@ export default function LumafoldApp() {
         fontSize={state.theme.fontSize ?? 13}
         accentColor={state.theme.accentColor ?? 'amber'}
       />
-      <div className="flex h-full w-full flex-col overflow-hidden bg-[var(--surface-0)] font-sans text-[var(--text-primary)]">
+      <div className="flex h-full w-full flex-col overflow-hidden bg-[var(--workspace-bg)] font-sans text-[var(--text-primary)]">
         {/* ── Unified Top Chrome ── */}
-        <header className="flex h-[38px] shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-0)] px-2.5">
+        <header className="flex h-[38px] shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--header-bg)] px-2.5">
           <div className="min-w-0 flex-1 overflow-hidden">
             <TabBar
               folders={state.folders}
@@ -177,25 +195,43 @@ export default function LumafoldApp() {
 
           <div className="ml-2 flex shrink-0 items-center gap-1">
             {activeFolder && (
-              <button
-                onClick={() => store.addPanel(activeFolder.id)}
-                className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
-                title="Add panel (Ctrl+Shift+])"
-              >
-                <LayoutGrid size={13} />
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowPanelsModal(true)}
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+                  title="Panels (add, hide, unhide)"
+                  aria-label="Manage panels"
+                >
+                  <LayoutGrid size={13} />
+                </button>
+                {visiblePanels.length < 3 && (
+                  <button
+                    type="button"
+                    onClick={() => store.addPanel(activeFolder.id)}
+                    className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+                    title="Add panel (Ctrl+Shift+])"
+                    aria-label="Add panel"
+                  >
+                    <Plus size={13} />
+                  </button>
+                )}
+              </>
             )}
 
             <button
+              type="button"
               onClick={() => setShowFoldersModal(true)}
               className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
               title="Manage folders"
+              aria-label="Manage folders"
             >
               <FolderOpen size={13} />
             </button>
 
             {!isFullscreen && (
               <button
+                type="button"
                 onClick={() => {
                   if (typeof chrome !== 'undefined' && chrome.tabs) {
                     chrome.tabs.create({
@@ -208,15 +244,18 @@ export default function LumafoldApp() {
                 }}
                 className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
                 title="Open fullscreen tab"
+                aria-label="Open fullscreen tab"
               >
                 <Maximize2 size={13} />
               </button>
             )}
 
             <button
+              type="button"
               onClick={() => setShowSettings(true)}
               className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
               title="Settings (Ctrl+,)"
+              aria-label="Settings"
             >
               <SettingsIcon size={13} />
             </button>
@@ -226,7 +265,7 @@ export default function LumafoldApp() {
         {/* ── Main Multi-Column Workspace ── */}
         <main
           ref={workspaceRef}
-          className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden bg-[var(--surface-1)]"
+          className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden bg-[var(--workspace-bg)]"
         >
           {!activeFolder ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-[var(--text-tertiary)] select-none">
@@ -278,7 +317,7 @@ export default function LumafoldApp() {
               </div>
             </div>
           ) : (
-            <div className="flex h-full w-full min-w-0 flex-1 overflow-hidden">
+            <div className="flex h-full w-full min-w-0 flex-1 overflow-hidden bg-[var(--workspace-bg)] p-1">
               {visiblePanels.map((panel, idx) => {
                 const realIdx = activeFolder.panels.indexOf(panel);
                 const widthStyle = activeFolder.panelWidths?.[idx]
@@ -289,15 +328,56 @@ export default function LumafoldApp() {
                   <React.Fragment key={panel.id}>
                     {idx > 0 && (
                       <div
-                        className="group/divider relative z-10 w-px shrink-0 cursor-col-resize bg-[var(--border-subtle)] transition-colors select-none before:absolute before:inset-y-0 before:-right-1.5 before:-left-1.5 hover:bg-[var(--accent)]"
-                        title="Drag to resize / Double-click to equalize"
+                        role="separator"
+                        aria-orientation="vertical"
+                        aria-label="Resize columns"
+                        tabIndex={0}
+                        className="group/divider relative z-20 flex w-1 shrink-0 cursor-col-resize items-center justify-center outline-none select-none before:absolute before:inset-y-0 before:-right-1.5 before:-left-1.5 before:z-10 focus-visible:ring-1 focus-visible:ring-[var(--accent)]"
+                        title="Drag to resize columns • Double-click to equalize"
                         onMouseDown={(e) => onDividerMouseDown(idx - 1, e)}
                         onDoubleClick={resetEqualWidths}
-                      />
+                        onKeyDown={(e) => {
+                          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                            e.preventDefault();
+                            const dividerIdx = idx - 1;
+                            const step = e.key === 'ArrowLeft' ? -2 : 2;
+                            const count = visiblePanels.length;
+                            const currentWidths =
+                              activeFolder.panelWidths &&
+                              activeFolder.panelWidths.length === count
+                                ? [...activeFolder.panelWidths]
+                                : Array(count).fill(100 / count);
+                            const leftWidth = currentWidths[dividerIdx] + step;
+                            const rightWidth =
+                              currentWidths[dividerIdx + 1] - step;
+                            if (leftWidth >= 15 && rightWidth >= 15) {
+                              currentWidths[dividerIdx] = leftWidth;
+                              currentWidths[dividerIdx + 1] = rightWidth;
+                              store.updateFolderWidths(
+                                activeFolder.id,
+                                currentWidths,
+                              );
+                            }
+                          } else if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            resetEqualWidths();
+                          }
+                        }}
+                      >
+                        {/* Hover/Active Resizer Indicator Line */}
+                        <div
+                          className={cn(
+                            'h-full w-full rounded-full transition-colors duration-150',
+                            resizingDividerIdx === idx - 1
+                              ? 'bg-[var(--accent)]'
+                              : 'bg-transparent group-hover/divider:bg-[var(--accent)]/50',
+                          )}
+                        />
+                      </div>
                     )}
                     <div
                       style={widthStyle}
-                      className="h-full min-w-[160px] overflow-hidden"
+                      className="flex h-full min-w-[160px] flex-col overflow-hidden rounded-md border border-[var(--border-subtle)] bg-[var(--panel-bg)] shadow-xs"
                     >
                       <Panel
                         panel={panel}
@@ -360,16 +440,18 @@ export default function LumafoldApp() {
           )}
         </main>
 
-        {/* ── Quiet Status Bar ── */}
-        <footer className="flex h-6 shrink-0 items-center justify-between border-t border-[var(--border-subtle)] bg-[var(--surface-0)] px-3 text-[11px] text-[var(--text-tertiary)] select-none">
-          <span>
-            {activeFolder ? `Folder: ${activeFolder.name}` : 'Lumafold'}
-          </span>
-          <span>
-            {visiblePanels.length}{' '}
-            {visiblePanels.length === 1 ? 'Column' : 'Columns'} · Auto-saved
-          </span>
-        </footer>
+        {/* ── Quiet Status Bar (Hidden in popup mode) ── */}
+        {isFullscreen && (
+          <footer className="flex h-6 shrink-0 items-center justify-between border-t border-[var(--border-subtle)] bg-[var(--header-bg)] px-3 text-[11px] text-[var(--text-tertiary)] select-none">
+            <span>
+              {activeFolder ? `Folder: ${activeFolder.name}` : 'Lumafold'}
+            </span>
+            <span>
+              {visiblePanels.length}{' '}
+              {visiblePanels.length === 1 ? 'Column' : 'Columns'} · Auto-saved
+            </span>
+          </footer>
+        )}
 
         {/* ── Modals ── */}
         {showFoldersModal && (
@@ -384,7 +466,7 @@ export default function LumafoldApp() {
         )}
         {showPanelsModal && activeFolder && (
           <PanelsModal
-            canAddPanel={activeFolder.panels.length < 3}
+            canAddPanel={visiblePanels.length < 3}
             canUnhide={visiblePanels.length < 3}
             onAddPanel={() => store.addPanel(activeFolder.id)}
             panels={activeFolder.panels}
