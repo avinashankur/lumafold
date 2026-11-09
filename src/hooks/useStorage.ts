@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
+  AccentColor,
   AISettings,
   AppState,
   Folder,
@@ -65,6 +66,7 @@ const DEFAULT_STATE: AppState = {
   activeFolderId: null,
   theme: {
     fontSize: 13,
+    accentColor: 'amber',
   },
   preferences: {
     showPanelHeaders: true,
@@ -123,6 +125,9 @@ export function useStorage() {
       // Migrate: add fontSize for legacy theme
       if (s.theme && typeof s.theme.fontSize !== 'number') {
         s.theme = { ...s.theme, fontSize: 13 };
+      }
+      if (s.theme && !s.theme.accentColor) {
+        s.theme = { ...s.theme, accentColor: 'amber' };
       }
       const legacyTheme = s.theme as ThemeSettings & {
         showPanelHeaders?: boolean;
@@ -200,6 +205,18 @@ export function useStorage() {
       update((s) => ({
         ...s,
         folders: s.folders.map((f) => (f.id === id ? { ...f, name } : f)),
+      }));
+    },
+    [update],
+  );
+
+  const updateFolderWidths = useCallback(
+    (id: string, panelWidths: number[]) => {
+      update((s) => ({
+        ...s,
+        folders: s.folders.map((f) =>
+          f.id === id ? { ...f, panelWidths } : f,
+        ),
       }));
     },
     [update],
@@ -451,6 +468,9 @@ export function useStorage() {
         typeof d.activeFolderId === 'string' ? d.activeFolderId : null,
       theme: {
         fontSize: Number((d.theme as Record<string, unknown>)?.fontSize) || 13,
+        accentColor:
+          ((d.theme as Record<string, unknown>)?.accentColor as AccentColor) ||
+          'amber',
       },
       preferences: {
         showPanelHeaders:
@@ -500,6 +520,7 @@ export function useStorage() {
     addFolder,
     deleteFolder,
     renameFolder,
+    updateFolderWidths,
     hideFolderById,
     unhideFolderById,
     setActiveFolder,

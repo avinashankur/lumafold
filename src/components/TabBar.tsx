@@ -114,20 +114,12 @@ export default function TabBar({
                   }}
                   onClick={() => onSelect(folder.id)}
                   className={cn(
-                    'group relative flex min-w-[100px] flex-shrink-0 cursor-pointer items-center justify-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors duration-100 select-none',
+                    'group relative flex min-w-[80px] flex-shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-3 py-1 text-xs font-medium whitespace-nowrap transition-all duration-120 select-none',
                     isActive
-                      ? 'text-white'
-                      : 'text-[var(--text-muted)] hover:bg-[var(--hover)] hover:text-[var(--text)]',
-                    dragOverIdx === idx && 'ring-1 ring-[var(--primary)]',
+                      ? 'border-[var(--border-active)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-xs'
+                      : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]',
+                    dragOverIdx === idx && 'ring-1 ring-[var(--accent)]',
                   )}
-                  style={
-                    isActive
-                      ? {
-                          background: 'var(--primary)',
-                          color: 'var(--primary-foreground)',
-                        }
-                      : {}
-                  }
                 >
                   {editingId === folder.id ? (
                     <input
@@ -140,7 +132,7 @@ export default function TabBar({
                         if (e.key === 'Enter') commitEdit(folder.id);
                         if (e.key === 'Escape') setEditingId(null);
                       }}
-                      className="w-20 border-b border-[var(--primary)] bg-transparent text-[var(--text)] outline-none"
+                      className="w-24 border-b border-[var(--accent)] bg-transparent text-xs text-[var(--text-primary)] outline-none"
                     />
                   ) : (
                     <span
@@ -180,11 +172,10 @@ export default function TabBar({
       {/* Add folder button */}
       <button
         onClick={onAdd}
-        className="ml-0.5 flex flex-shrink-0 items-center gap-1 rounded-md px-2 py-1.5 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--primary)]"
+        className="ml-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[var(--text-tertiary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
         title="New Folder (Ctrl+T)"
       >
-        <Plus size={12} />
-        <span>New</span>
+        <Plus size={13} />
       </button>
     </div>
   );

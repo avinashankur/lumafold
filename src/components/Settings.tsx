@@ -118,6 +118,10 @@ export default function Settings({
               <AppearanceSettings
                 fontSize={theme.fontSize}
                 onFontSizeChange={(fontSize) => onThemeChange({ fontSize })}
+                accentColor={theme.accentColor ?? 'amber'}
+                onAccentColorChange={(accentColor) =>
+                  onThemeChange({ accentColor })
+                }
               />
             )}
 

@@ -1,36 +1,45 @@
 // src/components/RichEditor.tsx
-import { useEditor, EditorContent } from "@tiptap/react";
-import Document from "@tiptap/extension-document";
-import Paragraph from "@tiptap/extension-paragraph";
-import Text from "@tiptap/extension-text";
-import Bold from "@tiptap/extension-bold";
-import Italic from "@tiptap/extension-italic";
-import Underline from "@tiptap/extension-underline";
-import Strike from "@tiptap/extension-strike";
-import Code from "@tiptap/extension-code";
-import CodeBlock from "@tiptap/extension-code-block";
-import Blockquote from "@tiptap/extension-blockquote";
-import Heading from "@tiptap/extension-heading";
-import BulletList from "@tiptap/extension-bullet-list";
-import OrderedList from "@tiptap/extension-ordered-list";
-import ListItem from "@tiptap/extension-list-item";
-import HorizontalRule from "@tiptap/extension-horizontal-rule";
-import History from "@tiptap/extension-history";
-import TextStyle from "@tiptap/extension-text-style";
-import FontFamily from "@tiptap/extension-font-family";
-import { useEffect, useRef } from "react";
-import { useEditorContext } from "../context/EditorContext";
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
+import Document from '@tiptap/extension-document';
+import Paragraph from '@tiptap/extension-paragraph';
+import Text from '@tiptap/extension-text';
+import Bold from '@tiptap/extension-bold';
+import Italic from '@tiptap/extension-italic';
+import Underline from '@tiptap/extension-underline';
+import Strike from '@tiptap/extension-strike';
+import Code from '@tiptap/extension-code';
+import CodeBlock from '@tiptap/extension-code-block';
+import Blockquote from '@tiptap/extension-blockquote';
+import Heading from '@tiptap/extension-heading';
+import BulletList from '@tiptap/extension-bullet-list';
+import OrderedList from '@tiptap/extension-ordered-list';
+import ListItem from '@tiptap/extension-list-item';
+import HorizontalRule from '@tiptap/extension-horizontal-rule';
+import History from '@tiptap/extension-history';
+import TextStyle from '@tiptap/extension-text-style';
+import FontFamily from '@tiptap/extension-font-family';
+import { useEffect, useRef } from 'react';
+import { useEditorContext } from '../context/EditorContext';
+import {
+  Bold as BoldIcon,
+  Italic as ItalicIcon,
+  Underline as UnderlineIcon,
+  Strikethrough as StrikeIcon,
+  Code as CodeIcon,
+  Heading1,
+  Heading2,
+  List as ListIcon,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Re-exported for EditorToolbar
 export const FONTS = [
-  { label: "DM Sans", value: "DM Sans, sans-serif" },
-  { label: "DM Mono", value: "DM Mono, monospace" },
-  { label: "Georgia", value: "Georgia, serif" },
-  { label: "Verdana", value: "Verdana, sans-serif" },
-  { label: "Courier New", value: "Courier New, monospace" },
-  { label: "Palatino", value: "Palatino Linotype, serif" },
-  { label: "Trebuchet", value: "Trebuchet MS, sans-serif" },
-  { label: "Impact", value: "Impact, fantasy" },
+  { label: 'Geist Sans', value: 'Geist Variable, sans-serif' },
+  { label: 'Geist Mono', value: 'Geist Mono, monospace' },
+  { label: 'DM Sans', value: 'DM Sans, sans-serif' },
+  { label: 'DM Mono', value: 'DM Mono, monospace' },
+  { label: 'Georgia', value: 'Georgia, serif' },
+  { label: 'Verdana', value: 'Verdana, sans-serif' },
 ];
 
 interface Props {
@@ -63,15 +72,18 @@ export default function RichEditor({ content, onChange }: Props) {
       TextStyle,
       FontFamily,
     ],
-    content: content || "<p></p>",
+    content: content || '<p></p>',
     onUpdate({ editor }) {
       suppressRef.current = true;
       onChange(editor.getHTML());
-      setTimeout(() => { suppressRef.current = false; }, 50);
+      setTimeout(() => {
+        suppressRef.current = false;
+      }, 50);
     },
     editorProps: {
       attributes: {
-        class: "focus:outline-none min-h-full px-3 py-2.5 text-[var(--text)]",
+        class:
+          'focus:outline-none min-h-full px-4 py-3 text-[var(--text-primary)]',
       },
     },
   });
@@ -80,7 +92,7 @@ export default function RichEditor({ content, onChange }: Props) {
     if (!editor || suppressRef.current) return;
     const current = editor.getHTML();
     if (current !== content) {
-      editor.commands.setContent(content || "<p></p>", false);
+      editor.commands.setContent(content || '<p></p>', false);
     }
   }, [content, editor]);
 
@@ -88,10 +100,136 @@ export default function RichEditor({ content, onChange }: Props) {
 
   return (
     <div
-      className="flex flex-col h-full min-h-0"
+      className="flex h-full min-h-0 flex-col"
       onFocusCapture={() => setActiveEditor(editor)}
     >
-      <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+      {editor && (
+        <BubbleMenu
+          editor={editor}
+          tippyOptions={{ duration: 120 }}
+          className="flex items-center gap-0.5 rounded-md border border-[var(--border-active)] bg-[var(--surface-2)] p-1 shadow-xl backdrop-blur-md"
+        >
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={cn(
+              'flex h-6 w-6 items-center justify-center rounded text-xs transition-colors',
+              editor.isActive('bold')
+                ? 'bg-[var(--accent-tint)] text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]',
+            )}
+            title="Bold (Ctrl+B)"
+          >
+            <BoldIcon size={12} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={cn(
+              'flex h-6 w-6 items-center justify-center rounded text-xs transition-colors',
+              editor.isActive('italic')
+                ? 'bg-[var(--accent-tint)] text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]',
+            )}
+            title="Italic (Ctrl+I)"
+          >
+            <ItalicIcon size={12} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            className={cn(
+              'flex h-6 w-6 items-center justify-center rounded text-xs transition-colors',
+              editor.isActive('underline')
+                ? 'bg-[var(--accent-tint)] text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]',
+            )}
+            title="Underline (Ctrl+U)"
+          >
+            <UnderlineIcon size={12} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            className={cn(
+              'flex h-6 w-6 items-center justify-center rounded text-xs transition-colors',
+              editor.isActive('strike')
+                ? 'bg-[var(--accent-tint)] text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]',
+            )}
+            title="Strikethrough"
+          >
+            <StrikeIcon size={12} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            className={cn(
+              'flex h-6 w-6 items-center justify-center rounded text-xs transition-colors',
+              editor.isActive('code')
+                ? 'bg-[var(--accent-tint)] text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]',
+            )}
+            title="Inline Code"
+          >
+            <CodeIcon size={12} />
+          </button>
+
+          <div className="mx-0.5 h-3.5 w-px bg-[var(--border-subtle)]" />
+
+          <button
+            type="button"
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+            className={cn(
+              'flex h-6 w-6 items-center justify-center rounded text-xs transition-colors',
+              editor.isActive('heading', { level: 1 })
+                ? 'bg-[var(--accent-tint)] text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]',
+            )}
+            title="Heading 1"
+          >
+            <Heading1 size={12} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+            className={cn(
+              'flex h-6 w-6 items-center justify-center rounded text-xs transition-colors',
+              editor.isActive('heading', { level: 2 })
+                ? 'bg-[var(--accent-tint)] text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]',
+            )}
+            title="Heading 2"
+          >
+            <Heading2 size={12} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={cn(
+              'flex h-6 w-6 items-center justify-center rounded text-xs transition-colors',
+              editor.isActive('bulletList')
+                ? 'bg-[var(--accent-tint)] text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]',
+            )}
+            title="Bullet List"
+          >
+            <ListIcon size={12} />
+          </button>
+        </BubbleMenu>
+      )}
+
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
         <EditorContent editor={editor} className="h-full" />
       </div>
     </div>

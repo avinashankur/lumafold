@@ -1,0 +1,3 @@
+# Clean Desktop UI Architecture and Anti-AI-Slop Standards
+
+Lumafold previously used a fragmented UI with nested card containers, a persistent bottom formatting toolbar, multiple disparate modal dialogs, and mixed design tokens that consumed excessive vertical height in 600px popup mode. We decided to transition to a high-density Linear/Raycast-inspired utility architecture featuring a unified top chrome, interactive hairline column dividers, an on-selection Bubble Menu, and a 3-tier surface token system (`surface-0`, `surface-1`, `surface-2`). This maximizes usable editor canvas, guarantees zero AI slop (banning gratuitous gradients, glow rings, and bouncy animations), and enforces desktop-grade interaction density across popup and tab modes.

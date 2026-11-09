@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { EyeOff, GripVertical, Trash2 } from 'lucide-react';
 import RichEditor from './RichEditor';
 import { Panel as PanelType, AISettings } from '../types';
@@ -44,6 +44,13 @@ export default function Panel({
   const inputRef = useRef<HTMLInputElement>(null);
   const { showConfirm } = useModal();
 
+  const wordCount = useMemo(() => {
+    if (!panel.content) return 0;
+    const text = panel.content.replace(/<[^>]*>/g, '').trim();
+    if (!text) return 0;
+    return text.split(/\s+/).filter(Boolean).length;
+  }, [panel.content]);
+
   const handleDelete = () => {
     const hasContent =
       panel.content && panel.content.replace(/<[^>]*>/g, '').trim() !== '';
@@ -73,7 +80,6 @@ export default function Panel({
 
   const handleAIAccept = (result: string, command: AICommand) => {
     if (command === 'title') {
-      // Title result is plain text, not HTML — rename the panel
       const plain = result.replace(/<[^>]*>/g, '').trim();
       if (plain) onRename(plain);
     } else {
@@ -84,75 +90,74 @@ export default function Panel({
   return (
     <div
       className={cn(
-        `flex h-full min-w-0 flex-col overflow-hidden rounded-lg transition-all duration-100`,
-        isDragOver ? 'ring-primary ring-2' : '',
+        'group/panel relative flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-[var(--surface-1)] transition-all duration-120',
+        isDragOver && 'z-10 ring-1 ring-[var(--accent)]',
         !isScrolling && 'scrollbar-thumb-transparent',
         !showPanelScrollBar && 'scrollbar-thumb-transparent',
       )}
-      style={{
-        background: 'var(--panel-bg)',
-        border: '1px solid var(--border)',
-      }}
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
       {showHeader && (
-        <div
-          className="group flex shrink-0 items-center gap-1.5 px-2.5 py-1.5"
-          style={{
-            background: 'var(--panel-header-bg)',
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
-          {/* Drag handle */}
-          <div
-            draggable
-            onDragStart={onDragStart}
-            className="shrink-0 cursor-grab text-(--text-muted) opacity-0 transition-opacity group-hover:opacity-40 active:cursor-grabbing"
-          >
-            <GripVertical size={13} />
+        <div className="flex h-[34px] shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-1)] px-3.5">
+          {/* Left: Drag grip & title */}
+          <div className="flex min-w-0 items-center gap-2">
+            <div
+              draggable
+              onDragStart={onDragStart}
+              className="shrink-0 cursor-grab text-[var(--text-tertiary)] opacity-0 transition-opacity group-hover/panel:opacity-50 hover:text-[var(--accent)] hover:!opacity-100 active:cursor-grabbing"
+              title="Drag to reorder column"
+            >
+              <GripVertical size={12} />
+            </div>
+
+            {editing ? (
+              <input
+                ref={inputRef}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onBlur={commitEdit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitEdit();
+                  if (e.key === 'Escape') setEditing(false);
+                }}
+                className="w-28 border-b border-[var(--accent)] bg-transparent text-[11px] font-semibold tracking-wider text-[var(--text-primary)] uppercase outline-none"
+              />
+            ) : (
+              <span
+                className="cursor-pointer truncate text-[11px] font-semibold tracking-wider text-[var(--text-secondary)] uppercase transition-colors select-none hover:text-[var(--text-primary)]"
+                onDoubleClick={startEdit}
+                title="Double-click to rename"
+              >
+                {panel.title}
+              </span>
+            )}
           </div>
 
-          {/* Title */}
-          {editing ? (
-            <input
-              ref={inputRef}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={commitEdit}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') commitEdit();
-                if (e.key === 'Escape') setEditing(false);
-              }}
-              className="border-primary flex-1 border-b bg-transparent text-xs font-medium text-(--text) outline-none"
-            />
-          ) : (
-            <span
-              className="flex-1 cursor-pointer truncate text-xs font-medium text-(--text-muted) select-none"
-              onDoubleClick={startEdit}
-              title="Double-click to rename"
-            >
-              {panel.title}
+          {/* Right: Word count & Actions */}
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] text-[var(--text-tertiary)] select-none">
+              {wordCount} {wordCount === 1 ? 'word' : 'words'}
             </span>
-          )}
 
-          {/* Hide button — always present on hover, hides panel (data preserved) */}
-          <button
-            onClick={onHide}
-            className="shrink-0 text-(--text-muted) opacity-0 transition-all group-hover:opacity-60 hover:text-(--text) hover:opacity-100!"
-            title="Hide panel (data is preserved)"
-          >
-            <EyeOff size={12} />
-          </button>
+            <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover/panel:opacity-100">
+              <button
+                onClick={onHide}
+                className="flex h-5 w-5 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+                title="Hide panel (content is preserved)"
+              >
+                <EyeOff size={11} />
+              </button>
 
-          {/* Delete button — permanently deletes panel */}
-          <button
-            onClick={handleDelete}
-            className="shrink-0 text-(--text-muted) opacity-0 transition-all group-hover:opacity-60 hover:text-red-400 hover:opacity-100!"
-            title="Delete panel"
-          >
-            <Trash2 size={12} />
-          </button>
+              <button
+                onClick={handleDelete}
+                className="flex h-5 w-5 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-red-400"
+                title="Delete panel"
+              >
+                <Trash2 size={11} />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

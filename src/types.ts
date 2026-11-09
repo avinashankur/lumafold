@@ -13,8 +13,12 @@ export interface Folder {
   panelWidths: number[]; // percentages, e.g. [33, 33, 34]
 }
 
+export type AccentColor =
+  'amber' | 'iris' | 'emerald' | 'sapphire' | 'rose' | 'monochrome';
+
 export interface ThemeSettings {
   fontSize: number; // px, applies to all editors (12–16)
+  accentColor?: AccentColor;
 }
 
 export interface PreferencesSettingTypes {
