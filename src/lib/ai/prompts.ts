@@ -92,7 +92,7 @@ export function titlePrompt(html: string): AIMessage[] {
       content: `You are a precise title generator.
 You receive note content in HTML format.
 Return ONLY a plain text title — no HTML, no quotes, no explanation.
-The title must be short (3–8 words), specific, and descriptive of the content.`,
+The title must be short (max 3 words), specific, punchy.`,
     },
     {
       role: 'user',
