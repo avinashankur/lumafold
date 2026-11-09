@@ -1,4 +1,5 @@
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { PreferencesSettingTypes } from '../../types';
 
 export interface PreferencesSettingsProps {
@@ -11,10 +12,12 @@ export const PreferencesSettings = ({
   onPreferencesChange,
 }: PreferencesSettingsProps) => {
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <div className="text-xs font-medium">Panel headers</div>
+          <div className="text-foreground text-xs font-medium">
+            Panel headers
+          </div>
           <div className="text-muted-foreground mt-0.5 text-[11px]">
             Show titles and panel controls above editors.
           </div>
@@ -27,9 +30,14 @@ export const PreferencesSettings = ({
           aria-label="Toggle panel headers"
         />
       </div>
+
+      <Separator />
+
       <div className="flex items-center justify-between gap-4">
         <div>
-          <div className="text-xs font-medium">Tab bar scrollbar</div>
+          <div className="text-foreground text-xs font-medium">
+            Tab bar scrollbar
+          </div>
           <div className="text-muted-foreground mt-0.5 text-[11px]">
             Show the horizontal scrollbar under folder tabs.
           </div>
@@ -43,12 +51,15 @@ export const PreferencesSettings = ({
         />
       </div>
 
-      {/* Show Panel Scrollbar */}
+      <Separator />
+
       <div className="flex items-center justify-between gap-4">
         <div>
-          <div className="text-xs font-medium">Panel Scrollbar</div>
+          <div className="text-foreground text-xs font-medium">
+            Panel scrollbar
+          </div>
           <div className="text-muted-foreground mt-0.5 text-[11px]">
-            Show the vertical scrollbar on panels when text overflows on scroll.
+            Show the vertical scrollbar on panels when text overflows.
           </div>
         </div>
         <Switch
@@ -56,11 +67,9 @@ export const PreferencesSettings = ({
           onCheckedChange={(checked) =>
             onPreferencesChange({ showPanelScrollBar: checked })
           }
-          aria-label="Toggle tab bar scrollbar"
+          aria-label="Toggle panel vertical scrollbar"
         />
       </div>
-
-      {/* TBD: Text wrapping */}
     </div>
   );
 };

@@ -20,27 +20,26 @@ export function AccentColorSelectSetting({
   onAccentColorChange,
 }: Props) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-4">
       <div>
-        <div className="text-xs font-medium text-[var(--text-primary)]">
-          Theme Color
-        </div>
-        <div className="text-[11px] text-[var(--text-secondary)]">
-          Select accent highlight for carets, selections, and tools
+        <div className="text-foreground text-xs font-medium">Theme color</div>
+        <div className="text-muted-foreground text-[11px]">
+          Accent highlight for carets, selections, and tools
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-hover)] p-1">
+      <div className="border-input flex h-7 w-36 shrink-0 items-center justify-between rounded-md border bg-[var(--surface-2)] px-2 shadow-xs">
         {ACCENT_OPTIONS.map((opt) => (
           <button
             key={opt.id}
             type="button"
             onClick={() => onAccentColorChange(opt.id)}
             title={opt.label}
+            aria-label={`Select ${opt.label} theme color`}
             className={cn(
-              'h-4 w-4 rounded-full transition-transform hover:scale-110',
+              'focus-visible:ring-ring size-4 rounded-full transition-all duration-150 hover:scale-110 focus-visible:ring-2 focus-visible:outline-none',
               accentColor === opt.id &&
-                'scale-110 ring-2 ring-white ring-offset-1 ring-offset-[var(--surface-0)]',
+                'scale-110 ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--panel-bg)]',
             )}
             style={{ backgroundColor: opt.color }}
           />

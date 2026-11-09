@@ -1,22 +1,23 @@
 import { useState } from 'react';
 import { cn } from '../lib/utils';
 import type { AppState } from '../types';
-import {
-  Database,
-  Keyboard,
-  Palette,
-  Settings2,
-  Sparkles,
-  X,
-} from 'lucide-react';
+import { Database, Keyboard, Palette, Settings2, Sparkles } from 'lucide-react';
 import { AISettings, PreferencesSettingTypes, ThemeSettings } from '../types';
 import { DataSettings } from './settings/data';
 import { AppearanceSettings } from './settings/appearance/main';
 import { PreferencesSettings } from './settings/preferences';
 import { ShortcutsSettings } from './settings/shortcuts';
 import { AISettingsSection } from './settings/ai';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface Props {
+  open?: boolean;
   theme: ThemeSettings;
   onThemeChange: (t: Partial<ThemeSettings>) => void;
   preferences: PreferencesSettingTypes;
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export default function Settings({
+  open = true,
   theme,
   onThemeChange,
   preferences,
@@ -46,74 +48,85 @@ export default function Settings({
   const sections = [
     { id: 'appearance' as const, label: 'Appearance', icon: Palette },
     { id: 'preferences' as const, label: 'Preferences', icon: Settings2 },
-    { id: 'data' as const, label: 'Data', icon: Database },
-    { id: 'shortcuts' as const, label: 'Shortcuts', icon: Keyboard },
     { id: 'ai' as const, label: 'AI', icon: Sparkles },
+    { id: 'shortcuts' as const, label: 'Shortcuts', icon: Keyboard },
+    { id: 'data' as const, label: 'Data', icon: Database },
   ];
 
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center p-3"
-      style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
     >
-      <div
-        className="flex h-[420px] max-h-full w-[min(640px,100%)] overflow-hidden rounded-xl shadow-2xl"
-        style={{
-          background: 'var(--panel-bg)',
-          border: '1px solid var(--border)',
-        }}
+      <DialogContent
+        className="border-border flex h-[480px] max-h-[85vh] w-[min(660px,94vw)] flex-row overflow-hidden rounded-xl border bg-[var(--panel-bg)] p-0 shadow-2xl"
+        showCloseButton={true}
       >
-        <aside
-          className="w-36 flex-shrink-0 border-r p-2"
-          style={{
-            background: 'var(--tab-bar-bg)',
-            borderColor: 'var(--border)',
-          }}
-        >
-          <div className="px-2 pt-1 pb-3 text-sm font-semibold text-[var(--text)]">
-            Settings
+        {/* Left Sidebar - Uses Header/Chrome shade of black instead of darkest shade */}
+        <aside className="flex w-42 shrink-0 flex-col justify-between border-r border-[var(--border-subtle)] bg-[var(--header-bg)] p-3 select-none">
+          <div>
+            <div className="text-muted-foreground/80 px-2.5 pt-1 pb-2.5 text-[10px] font-semibold tracking-wider uppercase">
+              Settings
+            </div>
+            <nav className="flex flex-col gap-1" aria-label="Settings sections">
+              {sections.map(({ id, label, icon: Icon }) => {
+                const isActive = activeSection === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setActiveSection(id)}
+                    className={cn(
+                      'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs transition-all duration-150',
+                      isActive
+                        ? 'text-foreground border border-[var(--border-subtle)] bg-[var(--panel-bg)] font-medium shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground border border-transparent hover:bg-[var(--surface-hover)]',
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        'size-3.5 shrink-0 transition-colors',
+                        isActive ? 'text-foreground' : 'opacity-70',
+                      )}
+                    />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
-          <nav className="space-y-0.5" aria-label="Settings sections">
-            {sections.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setActiveSection(id)}
-                className={cn(
-                  'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors',
-                  activeSection === id
-                    ? 'bg-[var(--hover)] font-medium text-[var(--text)]'
-                    : 'text-[var(--text-muted)] hover:bg-[var(--hover)] hover:text-[var(--text)]',
-                )}
-              >
-                <Icon size={14} />
-                {label}
-              </button>
-            ))}
-          </nav>
+
+          <div className="text-muted-foreground/60 flex items-center justify-between border-t border-[var(--border-subtle)] px-2.5 pt-2.5 text-[10px]">
+            <span>Lumafold</span>
+            <span className="font-mono text-[9px] opacity-75">v2.0</span>
+          </div>
         </aside>
 
-        <section className="min-w-0 flex-1 overflow-y-auto">
-          <header
-            className="sticky top-0 z-10 flex items-center justify-between border-b px-5 py-3"
-            style={{
-              background: 'var(--panel-bg)',
-              borderColor: 'var(--border)',
-            }}
-          >
-            <span className="text-sm font-semibold text-[var(--text)]">
-              {sections.find((section) => section.id === activeSection)?.label}
-            </span>
-            <button
-              onClick={onClose}
-              className="rounded p-1 text-[var(--text-muted)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text)]"
-              aria-label="Close settings"
-            >
-              <X size={15} />
-            </button>
-          </header>
+        {/* Right Content Area */}
+        <div className="flex min-w-0 flex-1 flex-col bg-[var(--panel-bg)]">
+          <DialogHeader className="flex flex-row items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--panel-bg)] px-6 py-3.5">
+            <div>
+              <DialogTitle className="text-foreground text-sm font-semibold">
+                {sections.find((s) => s.id === activeSection)?.label}
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground mt-0.5 text-[11px]">
+                {activeSection === 'appearance' &&
+                  'Customize theme, accent color, and typography'}
+                {activeSection === 'preferences' &&
+                  'Configure workspace layout and editor controls'}
+                {activeSection === 'ai' &&
+                  'Configure your AI provider and API keys'}
+                {activeSection === 'shortcuts' &&
+                  'Quick reference for keyboard shortcuts'}
+                {activeSection === 'data' &&
+                  'Export and restore workspace backups'}
+              </DialogDescription>
+            </div>
+          </DialogHeader>
 
-          <div className="space-y-6 p-5">
+          <div className="thin-scrollbar flex-1 overflow-y-auto px-6 py-5">
             {activeSection === 'appearance' && (
               <AppearanceSettings
                 fontSize={theme.fontSize}
@@ -145,8 +158,8 @@ export default function Settings({
               />
             )}
           </div>
-        </section>
-      </div>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

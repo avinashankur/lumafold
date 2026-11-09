@@ -13,12 +13,17 @@ const ShortcutSection = ({
   items: ShortcutItem[];
 }) => {
   return (
-    <section className="space-y-3">
-      <h3 className="text-foreground text-sm font-medium">{title}</h3>
-      <div className="space-y-2">
+    <section className="space-y-2">
+      <h3 className="text-muted-foreground/80 text-[10px] font-semibold tracking-wider uppercase">
+        {title}
+      </h3>
+      <div className="divide-y divide-[var(--border-subtle)] rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)]/60 px-3 py-1 shadow-xs">
         {items.map(({ keys, description }) => (
-          <div key={description} className="flex items-center justify-between">
-            <span className="text-muted-foreground text-sm">{description}</span>
+          <div
+            key={description}
+            className="flex items-center justify-between py-2 text-xs"
+          >
+            <span className="text-foreground text-xs">{description}</span>
 
             <div className="flex items-center gap-1">
               {keys.map((key, index) => (
@@ -26,9 +31,13 @@ const ShortcutSection = ({
                   key={`${key}-${index}`}
                   className="flex items-center gap-1"
                 >
-                  <Kbd className="text-primary">{key}</Kbd>
+                  <Kbd className="border border-[var(--border-subtle)] bg-[var(--panel-bg)] font-mono text-[11px] shadow-2xs">
+                    {key}
+                  </Kbd>
                   {index < keys.length - 1 && (
-                    <span className="text-muted-foreground text-xs">+</span>
+                    <span className="text-muted-foreground/60 text-[10px]">
+                      +
+                    </span>
                   )}
                 </div>
               ))}
@@ -44,7 +53,6 @@ export const ShortcutsSettings = () => {
   const appShortcuts: ShortcutItem[] = [
     { keys: ['Ctrl', 'T'], description: 'New folder' },
     { keys: ['Ctrl', 'Shift', ']'], description: 'Add panel' },
-    // { keys: ['Ctrl', 'Shift', 'L'], description: 'Toggle theme' },
     { keys: ['Ctrl', ','], description: 'Settings' },
   ];
 
@@ -62,49 +70,27 @@ export const ShortcutsSettings = () => {
     { keys: ['Ctrl', 'B'], description: 'Bold' },
     { keys: ['Ctrl', 'I'], description: 'Italic' },
     { keys: ['Ctrl', 'U'], description: 'Underline' },
-    { keys: ['Ctrl', 'Enter'], description: 'Add a line break' },
     { keys: ['Ctrl', 'Shift', 'S'], description: 'Strikethrough' },
     { keys: ['Ctrl', 'E'], description: 'Code' },
   ];
 
   const paraFormatting: ShortcutItem[] = [
-    { keys: ['Ctrl', 'Alt', '0'], description: 'Apply normal text style' },
-    { keys: ['Ctrl', 'Alt', '1'], description: 'Apply heading 1 style' },
-    { keys: ['Ctrl', 'Alt', '2'], description: 'Apply heading 2 style' },
-    { keys: ['Ctrl', 'Alt', '3'], description: 'Apply heading 3 style' },
+    { keys: ['Ctrl', 'Alt', '0'], description: 'Normal text' },
+    { keys: ['Ctrl', 'Alt', '1'], description: 'Heading 1' },
+    { keys: ['Ctrl', 'Alt', '2'], description: 'Heading 2' },
+    { keys: ['Ctrl', 'Alt', '3'], description: 'Heading 3' },
     { keys: ['Ctrl', 'Shift', '7'], description: 'Ordered list' },
     { keys: ['Ctrl', 'Shift', '8'], description: 'Bullet list' },
-    { keys: ['Ctrl', 'Shift', '9'], description: 'Task list' },
     { keys: ['Ctrl', 'Shift', 'B'], description: 'Blockquote' },
-    { keys: ['Ctrl', 'Shift', 'L'], description: 'Left Align' },
-    { keys: ['Ctrl', 'Shift', 'E'], description: 'Center Align' },
-    { keys: ['Ctrl', 'Shift', 'R'], description: 'Right Align' },
-    { keys: ['Ctrl', 'Shift', 'J'], description: 'Justify Align' },
     { keys: ['Ctrl', 'Alt', 'C'], description: 'Code block' },
   ];
 
-  const textSelection: ShortcutItem[] = [
-    { keys: ['Ctrl', 'A'], description: 'Select all' },
-    { keys: ['Ctrl', 'Shift', 'Arrow Left'], description: 'Select word left' },
-    {
-      keys: ['Ctrl', 'Shift', 'Arrow Right'],
-      description: 'Select word right',
-    },
-    { keys: ['Ctrl', 'Shift', 'Arrow Up'], description: 'Select paragraph up' },
-    {
-      keys: ['Ctrl', 'Shift', 'Arrow Down'],
-      description: 'Select paragraph down',
-    },
-  ];
-
   return (
-    <>
-      {' '}
-      <ShortcutSection title="App shortcuts" items={appShortcuts} />{' '}
-      <ShortcutSection title="Essentials" items={essentials} />{' '}
-      <ShortcutSection title="Text formatting" items={textFormatting} />{' '}
-      <ShortcutSection title="Paragraph formatting" items={paraFormatting} />{' '}
-      <ShortcutSection title="Text selection" items={textSelection} />
-    </>
+    <div className="space-y-4">
+      <ShortcutSection title="App shortcuts" items={appShortcuts} />
+      <ShortcutSection title="Essentials" items={essentials} />
+      <ShortcutSection title="Text formatting" items={textFormatting} />
+      <ShortcutSection title="Paragraph formatting" items={paraFormatting} />
+    </div>
   );
 };

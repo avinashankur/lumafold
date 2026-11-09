@@ -26,13 +26,16 @@ export const FontSizeSelectSetting = ({
   const selectedFontSize = isFontSize(fontSize) ? fontSize : 13;
 
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex flex-col gap-y-0.5">
-        <label className="text-xs font-medium" htmlFor="font-size-select">
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-0.5">
+        <label
+          className="text-foreground text-xs font-medium"
+          htmlFor="font-size-select"
+        >
           Font size
         </label>
         <span className="text-muted-foreground text-[11px]">
-          Select the font size
+          Editor text size in pixels
         </span>
       </div>
       <Select
@@ -42,10 +45,14 @@ export const FontSizeSelectSetting = ({
           if (isFontSize(nextFontSize)) onFontSizeChange(nextFontSize);
         }}
       >
-        <SelectTrigger id="font-size-select" size="sm" className="w-26 text-xs">
+        <SelectTrigger
+          id="font-size-select"
+          size="sm"
+          className="w-36 shrink-0 text-xs"
+        >
           <SelectValue />
         </SelectTrigger>
-        <SelectContent align="end" className="min-w-26 p-0.5">
+        <SelectContent align="end" className="w-36 min-w-36 p-1">
           {FONT_SIZES.map((size) => (
             <SelectItem key={size} value={String(size)} className="text-xs">
               {size}px

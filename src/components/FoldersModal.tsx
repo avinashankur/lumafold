@@ -1,10 +1,17 @@
-// src/components/FoldersModal.tsx
-import { useEffect } from "react";
-import { X, Plus, Eye, EyeOff, Trash2 } from "lucide-react";
-import type { Folder } from "../types";
-import { useModal } from "../context/ModalContext";
+import { Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
+import type { Folder } from '../types';
+import { useModal } from '../context/ModalContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface Props {
+  open?: boolean;
   folders: Folder[];
   onAddFolder: () => void;
   onHideFolder: (id: string) => void;
@@ -15,11 +22,12 @@ interface Props {
 
 function folderHasContent(folder: Folder): boolean {
   return folder.panels.some(
-    (p) => p.content && p.content.replace(/<[^>]*>/g, "").trim() !== ""
+    (p) => p.content && p.content.replace(/<[^>]*>/g, '').trim() !== '',
   );
 }
 
 export default function FoldersModal({
+  open = true,
   folders,
   onAddFolder,
   onHideFolder,
@@ -29,20 +37,12 @@ export default function FoldersModal({
 }: Props) {
   const { showConfirm } = useModal();
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
-
   const handleDelete = (folder: Folder) => {
     if (folderHasContent(folder)) {
       showConfirm(
         `Permanently delete "${folder.name}" and all its content?`,
         () => onDeleteFolder(folder.id),
-        { confirmLabel: "Delete", danger: true }
+        { confirmLabel: 'Delete', danger: true },
       );
     } else {
       onDeleteFolder(folder.id);
@@ -50,58 +50,57 @@ export default function FoldersModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
-      onClick={onClose}
-    >
-      <div
-        className="flex max-h-[calc(100vh-32px)] w-72 flex-col overflow-hidden rounded-xl shadow-2xl"
-        style={{ background: "var(--panel-bg)", border: "1px solid var(--border)" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--border)" }}>
-          <span className="text-sm font-semibold text-[var(--text)]">Folders</span>
-          <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
-            <X size={15} />
-          </button>
-        </div>
-        <div className="flex min-h-0 flex-col gap-4 overflow-hidden p-4">
-          <button
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="border-border bg-card flex max-h-[85vh] w-80 flex-col overflow-hidden rounded-lg border p-0 shadow-2xl">
+        <DialogHeader className="border-border border-b px-4 py-3">
+          <DialogTitle className="text-foreground text-sm font-semibold">
+            Manage Folders
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Add, hide, or delete folders
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-3 overflow-hidden p-4">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => {
               onAddFolder();
               onClose();
             }}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg border border-dashed text-sm transition-colors"
-            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+            className="text-muted-foreground hover:text-foreground w-full justify-start border-dashed text-xs"
           >
-            <Plus size={14} />
+            <Plus data-icon="inline-start" className="size-3.5" />
             Add folder
-          </button>
+          </Button>
+
           {folders.length > 0 && (
-            <div className="min-h-0 overflow-hidden">
-              <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider block mb-2">
-                Folders
+            <div className="flex min-h-0 flex-col overflow-hidden">
+              <span className="text-muted-foreground mb-1.5 text-[11px] font-semibold tracking-wider uppercase">
+                All folders
               </span>
-              <div className="thin-scrollbar flex max-h-[55vh] flex-col gap-1 overflow-y-auto pr-1">
+              <div className="thin-scrollbar flex max-h-[50vh] flex-col gap-1 overflow-y-auto pr-0.5">
                 {folders.map((f) => (
                   <div
                     key={f.id}
-                    className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg select-none"
-                    style={{ background: "var(--hover)" }}
+                    className="bg-muted/40 hover:bg-muted/70 flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5 transition-colors select-none"
                   >
                     <span
-                      className={`text-sm truncate pointer-events-none flex-1 ${
-                        f.hidden ? "text-[var(--text-muted)]" : "text-[var(--text)]"
+                      className={`pointer-events-none flex-1 truncate text-xs font-medium ${
+                        f.hidden
+                          ? 'text-muted-foreground line-through opacity-60'
+                          : 'text-foreground'
                       }`}
                     >
                       {f.name}
                     </span>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex shrink-0 items-center gap-1">
                       {f.hidden ? (
                         <button
+                          type="button"
                           onClick={() => onUnhideFolder(f.id)}
-                          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
+                          className="text-primary hover:bg-primary/10 flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium transition-colors"
                           title="Unhide this folder"
                         >
                           <Eye size={12} />
@@ -109,8 +108,9 @@ export default function FoldersModal({
                         </button>
                       ) : (
                         <button
+                          type="button"
                           onClick={() => onHideFolder(f.id)}
-                          className="flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--border)]"
+                          className="text-muted-foreground hover:text-foreground hover:bg-muted flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] transition-colors"
                           title="Hide this folder"
                         >
                           <EyeOff size={12} />
@@ -118,8 +118,9 @@ export default function FoldersModal({
                         </button>
                       )}
                       <button
+                        type="button"
                         onClick={() => handleDelete(f)}
-                        className="flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors text-[var(--text-muted)] hover:text-red-400 hover:bg-red-400/10"
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center gap-1 rounded p-1 transition-colors"
                         title="Delete folder"
                       >
                         <Trash2 size={12} />
@@ -131,7 +132,7 @@ export default function FoldersModal({
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,6 +1,7 @@
 import { FontSizeSelectSetting } from './font-size';
 import { ThemeSelectSetting } from './theme-select';
 import { AccentColorSelectSetting } from './accent-select';
+import { Separator } from '@/components/ui/separator';
 import { AccentColor } from '@/types';
 
 interface AppearanceSettingsProps {
@@ -17,14 +18,18 @@ export const AppearanceSettings = ({
   onAccentColorChange,
 }: AppearanceSettingsProps) => {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <ThemeSelectSetting />
       {onAccentColorChange && (
-        <AccentColorSelectSetting
-          accentColor={accentColor}
-          onAccentColorChange={onAccentColorChange}
-        />
+        <>
+          <Separator />
+          <AccentColorSelectSetting
+            accentColor={accentColor}
+            onAccentColorChange={onAccentColorChange}
+          />
+        </>
       )}
+      <Separator />
       <FontSizeSelectSetting
         fontSize={fontSize}
         onFontSizeChange={onFontSizeChange}

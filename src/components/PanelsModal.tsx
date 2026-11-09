@@ -1,9 +1,17 @@
-import { useEffect } from 'react';
-import { X, Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
 import type { Panel } from '../types';
 import { useModal } from '../context/ModalContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface Props {
+  open?: boolean;
   canAddPanel: boolean;
   canUnhide: boolean;
   onAddPanel: () => void;
@@ -15,6 +23,7 @@ interface Props {
 }
 
 export default function PanelsModal({
+  open = true,
   canAddPanel,
   canUnhide,
   onAddPanel,
@@ -25,14 +34,6 @@ export default function PanelsModal({
   onClose,
 }: Props) {
   const { showAlert, showConfirm } = useModal();
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
 
   const handleUnhide = (panelId: string) => {
     if (!canUnhide) {
@@ -57,70 +58,59 @@ export default function PanelsModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-60 flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
-      onClick={onClose}
-    >
-      <div
-        className="w-72 overflow-hidden rounded-xl shadow-2xl"
-        style={{
-          background: 'var(--panel-bg)',
-          border: '1px solid var(--border)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          className="flex items-center justify-between border-b px-4 py-3"
-          style={{ borderColor: 'var(--border)' }}
-        >
-          <span className="text-sm font-semibold text-(--text)">Panels</span>
-          <button
-            onClick={onClose}
-            className="text-(--text-muted) transition-colors hover:text-(--text)"
-          >
-            <X size={15} />
-          </button>
-        </div>
-        <div className="space-y-4 p-4">
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="border-border bg-card flex max-h-[85vh] w-80 flex-col overflow-hidden rounded-lg border p-0 shadow-2xl">
+        <DialogHeader className="border-border border-b px-4 py-3">
+          <DialogTitle className="text-foreground text-sm font-semibold">
+            Manage Panels
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Add, hide, or delete panels in this folder
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-3 overflow-hidden p-4">
           {canAddPanel && (
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => {
                 onAddPanel();
                 onClose();
               }}
-              className="flex w-full items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-sm transition-colors"
-              style={{
-                borderColor: 'var(--border)',
-                color: 'var(--text-muted)',
-              }}
+              className="text-muted-foreground hover:text-foreground w-full justify-start border-dashed text-xs"
             >
-              <Plus size={14} />
+              <Plus data-icon="inline-start" className="size-3.5" />
               Add panel (max 3)
-            </button>
+            </Button>
           )}
+
           {panels.length > 0 && (
-            <div>
-              <span className="mb-2 block text-xs font-medium tracking-wider text-(--text-muted) uppercase">
-                Panels
+            <div className="flex min-h-0 flex-col overflow-hidden">
+              <span className="text-muted-foreground mb-1.5 text-[11px] font-semibold tracking-wider uppercase">
+                Folder panels
               </span>
-              <div className="flex flex-col gap-1">
+              <div className="thin-scrollbar flex max-h-[50vh] flex-col gap-1 overflow-y-auto pr-0.5">
                 {panels.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 select-none"
-                    style={{ background: 'var(--hover)' }}
+                    className="bg-muted/40 hover:bg-muted/70 flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5 transition-colors select-none"
                   >
                     <span
-                      className={`pointer-events-none flex-1 truncate text-sm ${p.hidden ? 'text-(--text-muted)' : 'text-(--text)'}`}
+                      className={`pointer-events-none flex-1 truncate text-xs font-medium ${
+                        p.hidden
+                          ? 'text-muted-foreground line-through opacity-60'
+                          : 'text-foreground'
+                      }`}
                     >
                       {p.title}
                     </span>
                     <div className="flex shrink-0 items-center gap-1">
                       {p.hidden ? (
                         <button
+                          type="button"
                           onClick={() => handleUnhide(p.id)}
-                          className="text-primary hover:bg-primary hover:text-primary-foreground flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors"
+                          className="text-primary hover:bg-primary/10 flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium transition-colors"
                           title="Unhide this panel"
                         >
                           <Eye size={12} />
@@ -128,8 +118,9 @@ export default function PanelsModal({
                         </button>
                       ) : (
                         <button
+                          type="button"
                           onClick={() => onHidePanel(p.id)}
-                          className="hover:bg-border flex items-center gap-1 rounded px-2 py-1 text-xs text-(--text-muted) transition-colors hover:text-(--text)"
+                          className="text-muted-foreground hover:text-foreground hover:bg-muted flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] transition-colors"
                           title="Hide this panel"
                         >
                           <EyeOff size={12} />
@@ -137,8 +128,9 @@ export default function PanelsModal({
                         </button>
                       )}
                       <button
+                        type="button"
                         onClick={() => handleDelete(p)}
-                        className="flex items-center gap-1 rounded px-2 py-1 text-xs text-(--text-muted) transition-colors hover:bg-red-400/10 hover:text-red-400"
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center gap-1 rounded p-1 transition-colors"
                         title="Delete panel"
                       >
                         <Trash2 size={12} />
@@ -149,13 +141,14 @@ export default function PanelsModal({
               </div>
             </div>
           )}
+
           {panels.length === 0 && !canAddPanel && (
-            <p className="text-sm text-(--text-muted)">
+            <p className="text-muted-foreground text-xs">
               No panel actions available.
             </p>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

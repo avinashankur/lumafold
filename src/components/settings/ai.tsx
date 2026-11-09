@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { AISettings, AIProvider } from '../../types';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Kbd } from '@/components/ui/kbd';
 import { getDefaultBaseURL, getDefaultModel } from '@/lib/ai/client';
 import { callAI } from '@/lib/ai/client';
 
@@ -59,73 +68,65 @@ export function AISettingsSection({ aiSettings, onAISettingsChange }: Props) {
         : '';
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Description */}
-      <p className="text-xs leading-5 text-[var(--text-muted)]">
+      <p className="text-muted-foreground text-xs leading-5">
         AI features use your own API key. Your key is stored only on this device
         and never sent to Lumafold servers.
       </p>
 
       {/* Provider */}
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-[var(--text)]">
-          Provider
-        </label>
-        <select
-          value={aiSettings.provider}
-          onChange={(e) =>
-            handleProviderChange(e.target.value as AIProvider | '')
-          }
-          className="w-full rounded-md border bg-[var(--panel-bg)] px-2.5 py-1.5 text-xs text-[var(--text)] transition-shadow outline-none focus:ring-1 focus:ring-[var(--primary)]"
-          style={{ borderColor: 'var(--border)' }}
+        <label className="text-foreground text-xs font-medium">Provider</label>
+        <Select
+          value={aiSettings.provider || ''}
+          onValueChange={(val) => handleProviderChange(val as AIProvider | '')}
         >
-          <option value="">Select a provider…</option>
-          {PROVIDERS.map((p) => (
-            <option key={p.value} value={p.value}>
-              {p.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a provider…" />
+          </SelectTrigger>
+          <SelectContent>
+            {PROVIDERS.map((p) => (
+              <SelectItem key={p.value} value={p.value}>
+                {p.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* API Key */}
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-[var(--text)]">
-          API Key
-        </label>
-        <div className="flex items-center gap-1">
-          <div
-            className="flex flex-1 items-center overflow-hidden rounded-md border"
-            style={{ borderColor: 'var(--border)' }}
+        <label className="text-foreground text-xs font-medium">API Key</label>
+        <div className="relative flex items-center">
+          <Input
+            type={showKey ? 'text' : 'password'}
+            value={aiSettings.apiKey}
+            onChange={(e) => onAISettingsChange({ apiKey: e.target.value })}
+            placeholder={
+              aiSettings.provider === 'gemini'
+                ? 'AIza…'
+                : aiSettings.provider === 'openai'
+                  ? 'sk-…'
+                  : 'Your API key'
+            }
+            className="pr-9 font-mono"
+          />
+          <button
+            type="button"
+            onClick={() => setShowKey((s) => !s)}
+            className="text-muted-foreground hover:text-foreground absolute right-2.5 transition-colors"
+            title={showKey ? 'Hide key' : 'Show key'}
           >
-            <input
-              type={showKey ? 'text' : 'password'}
-              value={aiSettings.apiKey}
-              onChange={(e) => onAISettingsChange({ apiKey: e.target.value })}
-              placeholder={
-                aiSettings.provider === 'gemini'
-                  ? 'AIza…'
-                  : aiSettings.provider === 'openai'
-                    ? 'sk-…'
-                    : 'Your API key'
-              }
-              className="flex-1 bg-[var(--panel-bg)] px-2.5 py-1.5 font-mono text-xs text-[var(--text)] outline-none"
-            />
-            <button
-              onClick={() => setShowKey((s) => !s)}
-              className="px-2 text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
-              title={showKey ? 'Hide key' : 'Show key'}
-            >
-              {showKey ? <EyeOff size={13} /> : <Eye size={13} />}
-            </button>
-          </div>
+            {showKey ? <EyeOff size={13} /> : <Eye size={13} />}
+          </button>
         </div>
       </div>
 
       {/* Model */}
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-[var(--text)]">Model</label>
-        <input
+        <label className="text-foreground text-xs font-medium">Model</label>
+        <Input
           type="text"
           value={aiSettings.model}
           onChange={(e) => onAISettingsChange({ model: e.target.value })}
@@ -134,11 +135,10 @@ export function AISettingsSection({ aiSettings, onAISettingsChange }: Props) {
               ? getDefaultModel(aiSettings.provider) || 'model name'
               : 'Select a provider first'
           }
-          className="w-full rounded-md border bg-[var(--panel-bg)] px-2.5 py-1.5 font-mono text-xs text-[var(--text)] transition-shadow outline-none focus:ring-1 focus:ring-[var(--primary)]"
-          style={{ borderColor: 'var(--border)' }}
+          className="font-mono"
         />
         {aiSettings.provider && aiSettings.provider !== 'custom' && (
-          <p className="text-[10px] text-[var(--text-muted)]">
+          <p className="text-muted-foreground text-[10px]">
             Default: {getDefaultModel(aiSettings.provider)}
           </p>
         )}
@@ -146,35 +146,26 @@ export function AISettingsSection({ aiSettings, onAISettingsChange }: Props) {
 
       {/* Base URL — always shown, read-only for known providers */}
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-[var(--text)]">
-          Base URL
-        </label>
+        <label className="text-foreground text-xs font-medium">Base URL</label>
         {aiSettings.provider === 'custom' ? (
-          <input
+          <Input
             type="text"
             value={aiSettings.customBaseURL}
             onChange={(e) =>
               onAISettingsChange({ customBaseURL: e.target.value })
             }
             placeholder="https://your-api.example.com/v1"
-            className="w-full rounded-md border bg-[var(--panel-bg)] px-2.5 py-1.5 font-mono text-xs text-[var(--text)] transition-shadow outline-none focus:ring-1 focus:ring-[var(--primary)]"
-            style={{ borderColor: 'var(--border)' }}
+            className="font-mono"
           />
         ) : (
-          <div
-            className="w-full truncate rounded-md border px-2.5 py-1.5 font-mono text-xs text-[var(--text-muted)]"
-            style={{
-              borderColor: 'var(--border)',
-              background: 'var(--hover)',
-            }}
-          >
+          <div className="border-input bg-muted/40 text-muted-foreground w-full truncate rounded-md border px-2.5 py-1.5 font-mono text-xs">
             {baseURL || '—'}
           </div>
         )}
       </div>
 
       {/* Test Connection */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 pt-1">
         <Button
           size="sm"
           variant="outline"
@@ -189,51 +180,35 @@ export function AISettingsSection({ aiSettings, onAISettingsChange }: Props) {
           {testStatus === 'loading' ? (
             <Loader2
               data-icon="inline-start"
-              size={12}
-              className="animate-spin"
+              className="size-3.5 animate-spin"
             />
           ) : null}
-          Test Connection
+          Test connection
         </Button>
 
         {testStatus === 'ok' && (
-          <span className="flex items-center gap-1 text-xs text-green-500">
-            <CheckCircle2 size={12} /> Connected
+          <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-500">
+            <CheckCircle2 size={13} /> Connected
           </span>
         )}
         {testStatus === 'error' && (
-          <span className="flex items-center gap-1 text-xs text-red-400">
-            <XCircle size={12} /> Failed
+          <span className="text-destructive flex items-center gap-1.5 text-xs font-medium">
+            <XCircle size={13} /> Failed
           </span>
         )}
       </div>
 
       {testStatus === 'error' && testError && (
-        <p
-          className="rounded-md px-3 py-2 text-xs leading-5"
-          style={{
-            background: 'color-mix(in srgb, #ef4444 10%, transparent)',
-            color: '#ef4444',
-          }}
-        >
+        <p className="border-destructive/20 bg-destructive/10 text-destructive rounded-md border px-3 py-2 text-xs leading-5">
           {testError}
         </p>
       )}
 
       {/* Keyboard shortcut hint */}
-      <div
-        className="rounded-md px-3 py-2 text-[10px] leading-5 text-[var(--text-muted)]"
-        style={{ background: 'var(--hover)' }}
-      >
-        <strong className="text-[var(--text)]">How to use:</strong> Right-click
-        any panel to open the AI menu, or press{' '}
-        <kbd
-          className="rounded border px-1 py-0.5 font-mono text-[10px]"
-          style={{ borderColor: 'var(--border)' }}
-        >
-          Ctrl+Shift+A
-        </kbd>{' '}
-        while a panel is focused.
+      <div className="border-border bg-muted/40 text-muted-foreground rounded-md border px-3 py-2 text-[11px] leading-5">
+        <strong className="text-foreground font-medium">How to use:</strong>{' '}
+        Right-click any panel to open the AI menu, or press{' '}
+        <Kbd>Ctrl+Shift+A</Kbd> while a panel is focused.
       </div>
     </div>
   );
