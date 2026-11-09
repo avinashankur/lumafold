@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
-import { ThemeProvider } from "@/components/theme-provider";
-import { ModalProvider } from "@/context/ModalContext";
-import { EditorProvider } from "@/context/EditorContext";
+import type { ReactNode } from 'react';
+import { ThemeProvider } from '@/components/theme-provider';
+import { ModalProvider } from '@/context/ModalContext';
+import { EditorProvider } from '@/context/EditorContext';
 
 type AppProvidersProps = {
   children: ReactNode;

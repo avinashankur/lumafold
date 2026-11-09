@@ -27,6 +27,10 @@ html[data-mode='popup'] #root {
   max-width: 100%;
 }
 
+html[data-mode='popup'] footer {
+  display: none !important;
+}
+
 /* ── Scrollbars ── */
 ::-webkit-scrollbar {
   width: 4px;
@@ -71,7 +75,7 @@ html[data-mode='popup'] #root {
   color: var(--text-primary);
   font-family: var(--font-sans);
   font-size: var(--editor-font-size);
-  line-height: 1.6;
+  line-height: 1.45;
   caret-color: var(--accent);
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -79,26 +83,35 @@ html[data-mode='popup'] #root {
 }
 
 .ProseMirror p {
-  margin-bottom: 0.85em;
+  margin-bottom: 0.5em;
 }
 
 .ProseMirror h1 {
   font-size: 1.35em;
   font-weight: 700;
-  margin-bottom: 0.5em;
+  margin-top: 0.8em;
+  margin-bottom: 0.35em;
   color: var(--text-primary);
 }
 .ProseMirror h2 {
   font-size: 1.18em;
   font-weight: 600;
-  margin: 1em 0 0.4em 0;
+  margin-top: 0.7em;
+  margin-bottom: 0.3em;
   color: var(--text-primary);
 }
 .ProseMirror h3 {
   font-size: 1.05em;
   font-weight: 600;
-  margin: 0.8em 0 0.35em 0;
+  margin-top: 0.6em;
+  margin-bottom: 0.25em;
   color: var(--text-primary);
+}
+.ProseMirror h1:first-child,
+.ProseMirror h2:first-child,
+.ProseMirror h3:first-child,
+.ProseMirror p:first-child {
+  margin-top: 0;
 }
 
 .ProseMirror strong {
@@ -131,7 +144,7 @@ html[data-mode='popup'] #root {
   border: 1px solid var(--border-subtle);
   border-radius: 6px;
   padding: 0.7em 0.9em;
-  margin: 0.6em 0;
+  margin: 0.5em 0;
   overflow-x: auto;
   max-width: 100%;
 }
@@ -147,31 +160,36 @@ html[data-mode='popup'] #root {
 .ProseMirror blockquote {
   border-left: 2px solid var(--accent);
   padding-left: 0.85em;
-  margin: 0.6em 0;
+  margin: 0.5em 0;
   color: var(--text-secondary);
   font-style: italic;
 }
 
 .ProseMirror ul {
   list-style: disc;
-  padding-left: 1.3em;
-  margin: 0.4em 0;
+  padding-left: 1.25em;
+  margin: 0.25em 0;
 }
 
 .ProseMirror ol {
   list-style: decimal;
-  padding-left: 1.3em;
-  margin: 0.4em 0;
+  padding-left: 1.25em;
+  margin: 0.25em 0;
 }
 
 .ProseMirror li {
-  margin-bottom: 0.25em;
+  margin-bottom: 0.12em;
+}
+
+.ProseMirror li > p {
+  margin-bottom: 0;
+  margin-top: 0;
 }
 
 .ProseMirror hr {
   border: none;
   border-top: 1px solid var(--border-subtle);
-  margin: 1em 0;
+  margin: 0.8em 0;
 }
 
 .ProseMirror ::selection {
@@ -179,6 +197,37 @@ html[data-mode='popup'] #root {
 }
 
 /* ── Theme Definitions ── */
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Geist Variable', sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius: 0.625rem;
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+}
+
 @layer base {
   .theme {
     --font-heading: var(--font-sans);
@@ -187,22 +236,26 @@ html[data-mode='popup'] #root {
   }
 
   :root {
-    /* Light Theme Surfaces */
-    --surface-0: #f4f4f6;
-    --surface-1: #ffffff;
-    --surface-2: #ffffff;
-    --surface-hover: #eaebee;
+    --radius: 0.625rem;
+    /* Three-Tier Surfaces - Light Mode */
+    --header-bg: #ebebee;
+    --workspace-bg: #e2e2e6;
+    --panel-bg: #ffffff;
+    --surface-0: var(--header-bg);
+    --surface-1: var(--panel-bg);
+    --surface-2: #dedee3;
+    --surface-hover: #e2e2e7;
     --border-subtle: rgba(0, 0, 0, 0.08);
     --border-active: rgba(0, 0, 0, 0.16);
-    --text-primary: #121214;
-    --text-secondary: #656570;
-    --text-tertiary: #9696a2;
+    --text-primary: #111113;
+    --text-secondary: #5f5f69;
+    --text-tertiary: #8b8b96;
     --danger: #ef4444;
 
     /* Shadcn/Legacy mappings */
-    --background: var(--surface-0);
+    --background: var(--workspace-bg);
     --foreground: var(--text-primary);
-    --card: var(--surface-1);
+    --card: var(--panel-bg);
     --card-foreground: var(--text-primary);
     --popover: var(--surface-2);
     --popover-foreground: var(--text-primary);
@@ -219,11 +272,9 @@ html[data-mode='popup'] #root {
     --ring: var(--accent);
 
     /* Legacy CSS Variable Bridges */
-    --bg: var(--surface-0);
-    --panel-bg: var(--surface-1);
-    --panel-header-bg: var(--surface-1);
-    --toolbar-bg: var(--surface-0);
-    --tab-bar-bg: var(--surface-0);
+    --bg: var(--workspace-bg);
+    --toolbar-bg: var(--header-bg);
+    --tab-bar-bg: var(--header-bg);
     --text: var(--text-primary);
     --text-muted: var(--text-secondary);
     --hover: var(--surface-hover);
@@ -231,22 +282,26 @@ html[data-mode='popup'] #root {
   }
 
   .dark {
-    /* Dark Theme Surfaces */
-    --surface-0: #0e0e12;
-    --surface-1: #141419;
-    --surface-2: #22222b;
-    --surface-hover: #1a1a22;
+    --radius: 0.625rem;
+    /* Three Distinct Shades of Black (Zero Pitch Black) - Dark Mode */
+    --header-bg: #1a1a1f; /* Shade 1: Tab Header & Chrome */
+    --workspace-bg: #0a0a0c; /* Shade 2: Padding Around Panels (Darkest Shade) */
+    --panel-bg: #141417; /* Shade 3: Panel Canvas (Deep Obsidian) */
+    --surface-0: var(--header-bg);
+    --surface-1: var(--panel-bg);
+    --surface-2: #222228; /* Active tabs, dropdowns, popovers */
+    --surface-hover: #1e1e23;
     --border-subtle: rgba(255, 255, 255, 0.08);
     --border-active: rgba(255, 255, 255, 0.16);
     --text-primary: #ededed;
-    --text-secondary: #90909c;
-    --text-tertiary: #5e5e6c;
+    --text-secondary: #9696a0;
+    --text-tertiary: #63636d;
     --danger: #ef4444;
 
     /* Shadcn/Legacy mappings */
-    --background: var(--surface-0);
+    --background: var(--workspace-bg);
     --foreground: var(--text-primary);
-    --card: var(--surface-1);
+    --card: var(--panel-bg);
     --card-foreground: var(--text-primary);
     --popover: var(--surface-2);
     --popover-foreground: var(--text-primary);
@@ -263,11 +318,9 @@ html[data-mode='popup'] #root {
     --ring: var(--accent);
 
     /* Legacy CSS Variable Bridges */
-    --bg: var(--surface-0);
-    --panel-bg: var(--surface-1);
-    --panel-header-bg: var(--surface-1);
-    --toolbar-bg: var(--surface-0);
-    --tab-bar-bg: var(--surface-0);
+    --bg: var(--workspace-bg);
+    --toolbar-bg: var(--header-bg);
+    --tab-bar-bg: var(--header-bg);
     --text: var(--text-primary);
     --text-muted: var(--text-secondary);
     --hover: var(--surface-hover);
