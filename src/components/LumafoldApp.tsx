@@ -178,7 +178,7 @@ export default function LumafoldApp() {
       />
       <div className="flex h-full w-full flex-col overflow-hidden bg-[var(--workspace-bg)] font-sans text-[var(--text-primary)]">
         {/* ── Unified Top Chrome ── */}
-        <header className="flex h-[38px] shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--header-bg)] px-2.5">
+        <header className="flex h-8 shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--header-bg)] px-2">
           <div className="min-w-0 flex-1 overflow-hidden">
             <TabBar
               folders={state.folders}

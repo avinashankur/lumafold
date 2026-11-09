@@ -76,10 +76,9 @@ export default function TabBar({
   return (
     <div
       className={cn(
-        'flex items-center gap-x-1 overflow-x-auto overflow-y-hidden',
+        'flex h-full items-center gap-x-1 overflow-x-auto overflow-y-hidden',
         !showScrollBar && 'scrollbar-none',
       )}
-      style={{ minHeight: 36 }}
     >
       <div
         className={cn(
@@ -114,7 +113,7 @@ export default function TabBar({
                   }}
                   onClick={() => onSelect(folder.id)}
                   className={cn(
-                    'group relative flex min-w-[80px] flex-shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-3 py-1 text-xs font-medium whitespace-nowrap transition-all duration-120 select-none',
+                    'group relative flex h-6 min-w-[56px] flex-shrink-0 cursor-pointer items-center justify-center gap-1 rounded-md border px-2 text-xs font-medium whitespace-nowrap transition-all duration-120 select-none',
                     isActive
                       ? 'border-[var(--border-active)] bg-[var(--surface-2)] text-[var(--text-primary)] shadow-xs'
                       : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]',

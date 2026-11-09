@@ -84,7 +84,7 @@ export default function FoldersModal({
                 {folders.map((f) => (
                   <div
                     key={f.id}
-                    className="bg-muted/40 hover:bg-muted/70 flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5 transition-colors select-none"
+                    className="bg-muted/40 hover:bg-muted/70 flex items-center justify-between gap-2 rounded-md px-2 py-1 transition-colors select-none"
                   >
                     <span
                       className={`pointer-events-none flex-1 truncate text-xs font-medium ${
