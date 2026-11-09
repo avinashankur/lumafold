@@ -7,6 +7,7 @@ import {
   PreferencesSettingTypes,
   ThemeSettings,
 } from '../types';
+import { generateFolderName } from '../lib/folderNames';
 
 const DEFAULT_AI_SETTINGS: AISettings = {
   provider: '',
@@ -167,12 +168,16 @@ export function useStorage() {
 
   // ── Folder actions ──────────────────────────────────────────────
   const addFolder = useCallback(() => {
-    const folder = makeFolder('New Folder');
-    update((s) => ({
-      ...s,
-      folders: [...s.folders, folder],
-      activeFolderId: folder.id,
-    }));
+    update((s) => {
+      const existingNames = s.folders.map((f) => f.name);
+      const name = generateFolderName(existingNames);
+      const folder = makeFolder(name);
+      return {
+        ...s,
+        folders: [...s.folders, folder],
+        activeFolderId: folder.id,
+      };
+    });
   }, [update]);
 
   const deleteFolder = useCallback(
