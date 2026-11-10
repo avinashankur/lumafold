@@ -19,7 +19,6 @@ import History from '@tiptap/extension-history';
 import TextStyle from '@tiptap/extension-text-style';
 import FontFamily from '@tiptap/extension-font-family';
 import { useEffect, useRef } from 'react';
-import { useEditorContext } from '../context/EditorContext';
 import {
   Bold as BoldIcon,
   Italic as ItalicIcon,
@@ -32,16 +31,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Re-exported for EditorToolbar
-export const FONTS = [
-  { label: 'Geist Sans', value: 'Geist Variable, sans-serif' },
-  { label: 'Geist Mono', value: 'Geist Mono, monospace' },
-  { label: 'DM Sans', value: 'DM Sans, sans-serif' },
-  { label: 'DM Mono', value: 'DM Mono, monospace' },
-  { label: 'Georgia', value: 'Georgia, serif' },
-  { label: 'Verdana', value: 'Verdana, sans-serif' },
-];
-
 interface Props {
   content: string;
   onChange: (html: string) => void;
@@ -49,7 +38,6 @@ interface Props {
 
 export default function RichEditor({ content, onChange }: Props) {
   const suppressRef = useRef(false);
-  const { setActiveEditor } = useEditorContext();
 
   const editor = useEditor({
     extensions: [
@@ -99,10 +87,7 @@ export default function RichEditor({ content, onChange }: Props) {
   if (!editor) return null;
 
   return (
-    <div
-      className="flex h-full min-h-0 flex-col"
-      onFocusCapture={() => setActiveEditor(editor)}
-    >
+    <div className="flex h-full min-h-0 flex-col">
       {editor && (
         <BubbleMenu
           editor={editor}
