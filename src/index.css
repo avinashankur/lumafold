@@ -283,19 +283,19 @@ html[data-mode='popup'] footer {
 
   .dark {
     --radius: 0.625rem;
-    /* Three Distinct Shades of Black (Zero Pitch Black) - Dark Mode */
-    --header-bg: #1a1a1f; /* Shade 1: Tab Header & Chrome */
-    --workspace-bg: #0a0a0c; /* Shade 2: Padding Around Panels (Darkest Shade) */
-    --panel-bg: #141417; /* Shade 3: Panel Canvas (Deep Obsidian) */
+    /* Neutral Dark Surfaces (zero hue, zero pitch black) - Dark Mode */
+    --header-bg: #1a1a1a; /* Shade 1: Tab Header & Chrome */
+    --workspace-bg: #0a0a0a; /* Shade 2: Padding Around Panels (Darkest Shade) */
+    --panel-bg: #141414; /* Shade 3: Panel Canvas (Deep Obsidian) */
     --surface-0: var(--header-bg);
     --surface-1: var(--panel-bg);
-    --surface-2: #222228; /* Active tabs, dropdowns, popovers */
-    --surface-hover: #1e1e23;
+    --surface-2: #222222; /* Active tabs, dropdowns, popovers */
+    --surface-hover: #1e1e1e;
     --border-subtle: rgba(255, 255, 255, 0.08);
     --border-active: rgba(255, 255, 255, 0.16);
     --text-primary: #ededed;
-    --text-secondary: #9696a0;
-    --text-tertiary: #63636d;
+    --text-secondary: #969696;
+    --text-tertiary: #636363;
     --danger: #ef4444;
 
     /* Shadcn/Legacy mappings */
