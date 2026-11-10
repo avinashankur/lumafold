@@ -128,9 +128,7 @@ lumafold/
 │  │  ├─ RichEditor.tsx
 │  │  ├─ Settings.tsx
 │  │  ├─ FoldersModal.tsx
-│  │  ├─ PanelsModal.tsx
-│  │  ├─ FormatModal.tsx
-│  │  └─ BottomToolbar.tsx
+│  │  └─ PanelsModal.tsx
 │  ├─ context/
 │  ├─ providers/
 │  └─ lib/
