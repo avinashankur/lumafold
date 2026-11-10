@@ -2,7 +2,7 @@ import { useState, useRef, useMemo } from 'react';
 import { EyeOff, GripVertical, Trash2 } from 'lucide-react';
 import RichEditor from './RichEditor';
 import { Panel as PanelType, AISettings } from '../types';
-import { AICommand } from '@/lib/ai/commands';
+import type { AIResult } from '@/lib/ai/actions';
 import { AICommandMenu } from './ai/AICommandMenu';
 import { cn } from '@/lib/utils';
 import { panelHasContent, plainText } from '@/lib/workspace';
@@ -76,13 +76,9 @@ export default function Panel({
 
   const isScrolling = useScrolling();
 
-  const handleAIAccept = (result: string, command: AICommand) => {
-    if (command === 'title') {
-      const plain = plainText(result);
-      if (plain) onRename(plain);
-    } else {
-      onAIAccept(result);
-    }
+  const handleAIAccept = (result: AIResult) => {
+    if (result.kind === 'title') onRename(result.text);
+    else onAIAccept(result.html);
   };
 
   return (

@@ -1,4 +1,7 @@
-import { AIMessage } from './client';
+export interface AIMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
 
 const SYSTEM_BASE = `You are a precise writing assistant. 
 You receive note content in HTML format (TipTap-compatible).

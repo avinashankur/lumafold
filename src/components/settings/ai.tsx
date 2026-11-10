@@ -11,19 +11,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Kbd } from '@/components/ui/kbd';
-import { getDefaultBaseURL, getDefaultModel } from '@/lib/ai/client';
-import { callAI } from '@/lib/ai/client';
+import {
+  AI_PROVIDERS,
+  effectiveBaseURL,
+  providerInfo,
+  switchProvider,
+  testConnection as testAIConnection,
+} from '@/lib/ai/actions';
 
 interface Props {
   aiSettings: AISettings;
   onAISettingsChange: (settings: Partial<AISettings>) => void;
 }
-
-const PROVIDERS: { value: AIProvider; label: string }[] = [
-  { value: 'gemini', label: 'Gemini (Google)' },
-  { value: 'openai', label: 'OpenAI' },
-  { value: 'custom', label: 'Custom (OpenAI-compatible)' },
-];
 
 type TestStatus = 'idle' | 'loading' | 'ok' | 'error';
 
@@ -32,40 +31,19 @@ export function AISettingsSection({ aiSettings, onAISettingsChange }: Props) {
   const [testStatus, setTestStatus] = useState<TestStatus>('idle');
   const [testError, setTestError] = useState('');
 
-  const handleProviderChange = (provider: AIProvider | '') => {
-    onAISettingsChange({
-      provider,
-      model:
-        provider && provider !== 'custom'
-          ? getDefaultModel(provider)
-          : aiSettings.model,
-      customBaseURL:
-        provider && provider !== 'custom'
-          ? getDefaultBaseURL(provider)
-          : aiSettings.customBaseURL,
-    });
-  };
+  const provider = providerInfo(aiSettings.provider);
 
   const testConnection = async () => {
     setTestStatus('loading');
     setTestError('');
     try {
-      await callAI(aiSettings, [
-        { role: 'user', content: 'Reply with exactly the word: ok' },
-      ]);
+      await testAIConnection(aiSettings);
       setTestStatus('ok');
     } catch (err) {
       setTestStatus('error');
       setTestError(err instanceof Error ? err.message : String(err));
     }
   };
-
-  const baseURL =
-    aiSettings.provider === 'custom'
-      ? aiSettings.customBaseURL
-      : aiSettings.provider
-        ? getDefaultBaseURL(aiSettings.provider)
-        : '';
 
   return (
     <div className="space-y-4">
@@ -80,14 +58,16 @@ export function AISettingsSection({ aiSettings, onAISettingsChange }: Props) {
         <label className="text-foreground text-xs font-medium">Provider</label>
         <Select
           value={aiSettings.provider || ''}
-          onValueChange={(val) => handleProviderChange(val as AIProvider | '')}
+          onValueChange={(val) =>
+            onAISettingsChange(switchProvider(val as AIProvider | ''))
+          }
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a provider…" />
           </SelectTrigger>
           <SelectContent>
-            {PROVIDERS.map((p) => (
-              <SelectItem key={p.value} value={p.value}>
+            {AI_PROVIDERS.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
                 {p.label}
               </SelectItem>
             ))}
@@ -103,13 +83,7 @@ export function AISettingsSection({ aiSettings, onAISettingsChange }: Props) {
             type={showKey ? 'text' : 'password'}
             value={aiSettings.apiKey}
             onChange={(e) => onAISettingsChange({ apiKey: e.target.value })}
-            placeholder={
-              aiSettings.provider === 'gemini'
-                ? 'AIza…'
-                : aiSettings.provider === 'openai'
-                  ? 'sk-…'
-                  : 'Your API key'
-            }
+            placeholder={provider?.keyPlaceholder ?? 'Your API key'}
             className="pr-9 font-mono"
           />
           <button
@@ -131,15 +105,15 @@ export function AISettingsSection({ aiSettings, onAISettingsChange }: Props) {
           value={aiSettings.model}
           onChange={(e) => onAISettingsChange({ model: e.target.value })}
           placeholder={
-            aiSettings.provider
-              ? getDefaultModel(aiSettings.provider) || 'model name'
+            provider
+              ? provider.defaultModel || 'model name'
               : 'Select a provider first'
           }
           className="font-mono"
         />
-        {aiSettings.provider && aiSettings.provider !== 'custom' && (
+        {provider?.defaultModel && (
           <p className="text-muted-foreground text-[10px]">
-            Default: {getDefaultModel(aiSettings.provider)}
+            Default: {provider.defaultModel}
           </p>
         )}
       </div>
@@ -159,7 +133,7 @@ export function AISettingsSection({ aiSettings, onAISettingsChange }: Props) {
           />
         ) : (
           <div className="border-input bg-muted/40 text-muted-foreground w-full truncate rounded-md border px-2.5 py-1.5 font-mono text-xs">
-            {baseURL || '—'}
+            {effectiveBaseURL(aiSettings) || '—'}
           </div>
         )}
       </div>

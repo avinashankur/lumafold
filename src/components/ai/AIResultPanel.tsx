@@ -1,15 +1,30 @@
-import { useEffect, useRef } from 'react';
 import { Check, Loader2, RefreshCw, X } from 'lucide-react';
+import { EditorContent, useEditor } from '@tiptap/react';
 import { Button } from '@/components/ui/button';
+import { EDITOR_EXTENSIONS } from '@/components/editor-extensions';
+import type { AIResult } from '@/lib/ai/actions';
 
 interface Props {
   loading: boolean;
   error: string | null;
-  result: string | null;
+  result: AIResult | null;
   commandLabel: string;
   onAccept: () => void;
   onDiscard: () => void;
   onRetry: () => void;
+}
+
+// Shows AI-written HTML through the same parser the panel editor uses, so
+// the preview is exactly what Accept will produce and nothing outside the
+// editor's known tags is ever put into the page.
+function ContentPreview({ html }: { html: string }) {
+  const editor = useEditor({
+    extensions: EDITOR_EXTENSIONS,
+    content: html,
+    editable: false,
+    editorProps: { attributes: { class: 'focus:outline-none' } },
+  });
+  return <EditorContent editor={editor} />;
 }
 
 export function AIResultPanel({
@@ -21,15 +36,6 @@ export function AIResultPanel({
   onDiscard,
   onRetry,
 }: Props) {
-  const previewRef = useRef<HTMLDivElement>(null);
-
-  // Inject result HTML into preview div safely
-  useEffect(() => {
-    if (previewRef.current && result) {
-      previewRef.current.innerHTML = result;
-    }
-  }, [result]);
-
   return (
     <div
       className="absolute inset-0 z-20 flex flex-col overflow-hidden rounded-lg"
@@ -95,10 +101,13 @@ export function AIResultPanel({
         )}
 
         {result && !loading && (
-          <div
-            ref={previewRef}
-            className="prose-sm max-w-none px-3 py-2.5 text-sm leading-relaxed text-[var(--text)] [&_blockquote]:my-1 [&_blockquote]:border-l-2 [&_blockquote]:pl-2 [&_code]:rounded [&_code]:bg-black/10 [&_code]:px-1 [&_code]:text-xs [&_h1]:mt-3 [&_h1]:mb-1 [&_h1]:text-base [&_h1]:font-semibold [&_h2]:mt-2 [&_h2]:mb-1 [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_h3]:text-xs [&_h3]:font-semibold [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:pl-4 [&_p]:my-1 [&_ul]:my-1 [&_ul]:pl-4"
-          />
+          <div className="prose-sm max-w-none px-3 py-2.5 text-sm leading-relaxed text-[var(--text)] [&_blockquote]:my-1 [&_blockquote]:border-l-2 [&_blockquote]:pl-2 [&_code]:rounded [&_code]:bg-black/10 [&_code]:px-1 [&_code]:text-xs [&_h1]:mt-3 [&_h1]:mb-1 [&_h1]:text-base [&_h1]:font-semibold [&_h2]:mt-2 [&_h2]:mb-1 [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_h3]:text-xs [&_h3]:font-semibold [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:pl-4 [&_p]:my-1 [&_ul]:my-1 [&_ul]:pl-4">
+            {result.kind === 'title' ? (
+              <p className="font-medium">{result.text}</p>
+            ) : (
+              <ContentPreview key={result.html} html={result.html} />
+            )}
+          </div>
         )}
       </div>
 

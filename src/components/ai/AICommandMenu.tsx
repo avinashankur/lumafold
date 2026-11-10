@@ -9,50 +9,24 @@ import {
   WrapText,
 } from 'lucide-react';
 import { AIResultPanel } from './AIResultPanel';
-import { useAI } from '@/hooks/useAI';
-import { AICommand } from '@/lib/ai/commands';
+import {
+  AI_ACTIONS,
+  type AIAction,
+  type AIResult,
+  runAction,
+} from '@/lib/ai/actions';
 import { AISettings } from '@/types';
 import { cn } from '@/lib/utils';
 
-interface CommandDef {
-  command: AICommand;
-  label: string;
-  description: string;
-  Icon: LucideIcon;
-}
-
-const COMMANDS: CommandDef[] = [
-  {
-    command: 'rewrite',
-    label: 'Rewrite',
-    description: 'Fix grammar and improve clarity',
-    Icon: WrapText,
-  },
-  {
-    command: 'organize',
-    label: 'Organize',
-    description: 'Sort and group bullet points',
-    Icon: ArrowUpDown,
-  },
-  {
-    command: 'format',
-    label: 'Format',
-    description: 'Add headings and hierarchy',
-    Icon: AlignLeft,
-  },
-  {
-    command: 'summarize',
-    label: 'Summarize',
-    description: 'Condense to key bullet points',
-    Icon: FileText,
-  },
-  {
-    command: 'title',
-    label: 'Generate Title',
-    description: 'Suggest a title for this panel',
-    Icon: Tag,
-  },
-];
+// Icons are the one thing an action needs from the view. An action without
+// an entry here gets the generic one.
+const ACTION_ICONS: Record<string, LucideIcon> = {
+  rewrite: WrapText,
+  organize: ArrowUpDown,
+  format: AlignLeft,
+  summarize: FileText,
+  title: Tag,
+};
 
 interface MenuPosition {
   x: number;
@@ -63,7 +37,7 @@ interface Props {
   children: ReactNode;
   panelContent: string;
   aiSettings: AISettings;
-  onAccept: (result: string, command: AICommand) => void;
+  onAccept: (result: AIResult) => void;
 }
 
 export function AICommandMenu({
@@ -72,12 +46,18 @@ export function AICommandMenu({
   aiSettings,
   onAccept,
 }: Props) {
-  const { loading, error, run } = useAI();
   const [menuPos, setMenuPos] = useState<MenuPosition | null>(null);
-  const [activeCommand, setActiveCommand] = useState<CommandDef | null>(null);
-  const [result, setResult] = useState<string | null>(null);
+  const [activeAction, setActiveAction] = useState<AIAction | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<AIResult | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  // The request in flight, if any. Aborting it also tells its handlers
+  // below to stay quiet, so a late answer never lands in the wrong place.
+  const requestRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => requestRef.current?.abort(), []);
 
   // Close menu on outside click or Escape
   useEffect(() => {
@@ -124,35 +104,49 @@ export function AICommandMenu({
     setMenuPos({ x: e.clientX, y: e.clientY });
   }, []);
 
-  const handleCommand = useCallback(
-    async (def: CommandDef) => {
+  const start = useCallback(
+    async (action: AIAction) => {
+      requestRef.current?.abort();
+      const request = new AbortController();
+      requestRef.current = request;
+
       setMenuPos(null);
-      setActiveCommand(def);
+      setActiveAction(action);
       setResult(null);
-      const res = await run(def.command, panelContent, aiSettings);
-      setResult(res);
+      setError(null);
+      setLoading(true);
+      try {
+        const next = await runAction(action.id, panelContent, aiSettings, {
+          signal: request.signal,
+        });
+        if (request.signal.aborted) return;
+        setResult(next);
+      } catch (err) {
+        if (request.signal.aborted) return;
+        setError(err instanceof Error ? err.message : String(err));
+      }
+      setLoading(false);
     },
-    [panelContent, aiSettings, run],
+    [panelContent, aiSettings],
   );
 
-  const handleAccept = useCallback(() => {
-    if (result && activeCommand) {
-      onAccept(result, activeCommand.command);
-    }
-    setActiveCommand(null);
+  const close = useCallback(() => {
+    requestRef.current?.abort();
+    requestRef.current = null;
+    setActiveAction(null);
     setResult(null);
-  }, [result, activeCommand, onAccept]);
-
-  const handleDiscard = useCallback(() => {
-    setActiveCommand(null);
-    setResult(null);
+    setError(null);
+    setLoading(false);
   }, []);
 
+  const handleAccept = useCallback(() => {
+    if (result) onAccept(result);
+    close();
+  }, [result, onAccept, close]);
+
   const handleRetry = useCallback(() => {
-    if (activeCommand) {
-      handleCommand(activeCommand);
-    }
-  }, [activeCommand, handleCommand]);
+    if (activeAction) start(activeAction);
+  }, [activeAction, start]);
 
   return (
     <div
@@ -163,7 +157,7 @@ export function AICommandMenu({
       {children}
 
       {/* Custom right-click floating menu */}
-      {menuPos && !activeCommand && (
+      {menuPos && !activeAction && (
         <div
           ref={menuRef}
           className="fixed z-[60] w-56 overflow-hidden rounded-lg p-1 shadow-lg outline-none"
@@ -188,41 +182,44 @@ export function AICommandMenu({
             style={{ background: 'var(--border)' }}
           />
 
-          {COMMANDS.map((def) => (
-            <button
-              key={def.command}
-              className={cn(
-                'flex w-full flex-col items-start rounded-md px-2 py-1.5 text-left transition-colors',
-                'outline-none hover:bg-[var(--hover)] focus:bg-[var(--hover)]',
-              )}
-              onClick={() => handleCommand(def)}
-            >
-              <div className="flex items-center gap-1.5">
-                <def.Icon
-                  size={13}
-                  className="shrink-0 text-[var(--text-muted)]"
-                />
-                <span className="text-xs font-medium text-[var(--text)]">
-                  {def.label}
+          {AI_ACTIONS.map((action) => {
+            const Icon = ACTION_ICONS[action.id] ?? Sparkles;
+            return (
+              <button
+                key={action.id}
+                className={cn(
+                  'flex w-full flex-col items-start rounded-md px-2 py-1.5 text-left transition-colors',
+                  'outline-none hover:bg-[var(--hover)] focus:bg-[var(--hover)]',
+                )}
+                onClick={() => start(action)}
+              >
+                <div className="flex items-center gap-1.5">
+                  <Icon
+                    size={13}
+                    className="shrink-0 text-[var(--text-muted)]"
+                  />
+                  <span className="text-xs font-medium text-[var(--text)]">
+                    {action.label}
+                  </span>
+                </div>
+                <span className="pl-[21px] text-[10px] leading-4 text-[var(--text-muted)]">
+                  {action.description}
                 </span>
-              </div>
-              <span className="pl-[21px] text-[10px] leading-4 text-[var(--text-muted)]">
-                {def.description}
-              </span>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
 
       {/* Result overlay — shown while loading or when a result is ready */}
-      {activeCommand && (
+      {activeAction && (
         <AIResultPanel
           loading={loading}
           error={error}
           result={result}
-          commandLabel={activeCommand.label}
+          commandLabel={activeAction.label}
           onAccept={handleAccept}
-          onDiscard={handleDiscard}
+          onDiscard={close}
           onRetry={handleRetry}
         />
       )}
