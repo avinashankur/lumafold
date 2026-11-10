@@ -7,7 +7,7 @@ import { AICommandMenu } from './ai/AICommandMenu';
 import { cn } from '@/lib/utils';
 import { panelHasContent, plainText } from '@/lib/workspace';
 import { useScrolling } from '@/hooks/useScrolling';
-import { useModal } from '../context/ModalContext';
+import { useConfirmDelete } from '@/hooks/useConfirmDelete';
 
 interface Props {
   panel: PanelType;
@@ -43,7 +43,7 @@ export default function Panel({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(panel.title);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { showConfirm } = useModal();
+  const confirmDelete = useConfirmDelete();
 
   const wordCount = useMemo(() => {
     const text = plainText(panel.content ?? '');
@@ -51,17 +51,8 @@ export default function Panel({
     return text.split(/\s+/).filter(Boolean).length;
   }, [panel.content]);
 
-  const handleDelete = () => {
-    if (panelHasContent(panel)) {
-      showConfirm(
-        `Permanently delete "${panel.title}" and its content?`,
-        onDelete,
-        { confirmLabel: 'Delete', danger: true },
-      );
-    } else {
-      onDelete();
-    }
-  };
+  const handleDelete = () =>
+    confirmDelete(panel.title, panelHasContent(panel), onDelete);
 
   const startEdit = () => {
     setDraft(panel.title);
