@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Plus, EyeOff, Trash2, Pencil } from 'lucide-react';
 import { Folder } from '../types';
 import { cn } from '../lib/utils';
+import { folderHasContent, visibleFolders } from '../lib/workspace';
 import { useModal } from '../context/ModalContext';
 import {
   ContextMenu,
@@ -19,14 +20,8 @@ interface Props {
   onDelete: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onHide: (id: string) => void;
-  onReorder: (from: number, to: number) => void;
+  onReorder: (id: string, targetId: string) => void;
   showScrollBar: boolean;
-}
-
-function folderHasContent(folder: Folder): boolean {
-  return folder.panels.some(
-    (p) => p.content && p.content.replace(/<[^>]*>/g, '').trim() !== '',
-  );
 }
 
 export default function TabBar({
@@ -44,7 +39,7 @@ export default function TabBar({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-  const dragFrom = useRef<number | null>(null);
+  const dragFrom = useRef<string | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
   const startEdit = (folder: Folder) => {
@@ -71,7 +66,7 @@ export default function TabBar({
   };
 
   // Only show visible folders in the tab bar
-  const visibleFolders = folders.filter((f) => !f.hidden);
+  const tabs = visibleFolders({ folders });
 
   return (
     <div
@@ -86,7 +81,7 @@ export default function TabBar({
           !showScrollBar && 'scrollbar-none',
         )}
       >
-        {visibleFolders.map((folder, idx) => {
+        {tabs.map((folder, idx) => {
           const isActive = folder.id === activeFolderId;
           return (
             <ContextMenu key={folder.id}>
@@ -94,7 +89,7 @@ export default function TabBar({
                 <div
                   draggable
                   onDragStart={() => {
-                    dragFrom.current = idx;
+                    dragFrom.current = folder.id;
                   }}
                   onDragOver={(e) => {
                     e.preventDefault();
@@ -105,8 +100,11 @@ export default function TabBar({
                     setDragOverIdx(null);
                   }}
                   onDrop={() => {
-                    if (dragFrom.current !== null && dragFrom.current !== idx) {
-                      onReorder(dragFrom.current, idx);
+                    if (
+                      dragFrom.current !== null &&
+                      dragFrom.current !== folder.id
+                    ) {
+                      onReorder(dragFrom.current, folder.id);
                     }
                     dragFrom.current = null;
                     setDragOverIdx(null);

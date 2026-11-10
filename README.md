@@ -120,7 +120,7 @@ lumafold/
 │  ├─ main.tsx          # React entry point
 │  ├─ types.ts          # Shared app state types
 │  ├─ hooks/
-│  │  └─ useStorage.ts  # Load, save, migrate, and update state
+│  │  └─ useStorage.ts  # React layer: load, update, save state
 │  ├─ components/
 │  │  ├─ LumafoldApp.tsx
 │  │  ├─ TabBar.tsx
@@ -132,6 +132,8 @@ lumafold/
 │  ├─ context/
 │  ├─ providers/
 │  └─ lib/
+│     ├─ workspace.ts  # Folder and panel rules (pure functions)
+│     └─ persistence.ts # Defaults, normalisation, storage adapters
 ├─ icons/
 ├─ dist/                # Production build output
 └─ package.json

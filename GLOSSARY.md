@@ -4,6 +4,10 @@ A structured note-taking browser extension organizing thoughts across folders an
 
 ## Language
 
+**Workspace**:
+The complete set of folders together with which one is currently active.
+_Avoid_: Store, app state, board, project
+
 **Folder**:
 A named container displayed in the top tab row that holds an independent set of panels.
 _Avoid_: Category, project, directory, notebook
@@ -21,7 +25,7 @@ The compact extension popup viewport running constrained within the browser's ac
 _Avoid_: Widget mode, mini mode, popup window
 
 **Tab Mode**:
-The expansive workspace view running within a full browser tab.
+The expansive viewport running within a full browser tab.
 _Avoid_: Fullscreen mode, desktop mode, web mode
 
 **Bubble Menu**:

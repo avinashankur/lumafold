@@ -3,12 +3,12 @@ import { AccentColor } from '@/types';
 
 type LumafoldThemeVarsProps = {
   fontSize: number;
-  accentColor?: AccentColor;
+  accentColor: AccentColor;
 };
 
 export function LumafoldThemeVars({
   fontSize,
-  accentColor = 'amber',
+  accentColor,
 }: LumafoldThemeVarsProps) {
   useEffect(() => {
     const root = window.document.documentElement;

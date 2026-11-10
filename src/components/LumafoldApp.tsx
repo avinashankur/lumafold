@@ -17,6 +17,7 @@ import FoldersModal from '@/components/FoldersModal';
 import { useTheme } from '@/components/theme-provider';
 import { LumafoldThemeVars } from '@/providers/lumafold-theme-vars';
 import { cn } from '@/lib/utils';
+import * as workspace from '@/lib/workspace';
 
 export default function LumafoldApp() {
   const store = useStorage();
@@ -27,7 +28,7 @@ export default function LumafoldApp() {
   const [resizingDividerIdx, setResizingDividerIdx] = useState<number | null>(
     null,
   );
-  const dragPanelFrom = useRef<number | null>(null);
+  const dragPanelFrom = useRef<string | null>(null);
   const [dragOverPanel, setDragOverPanel] = useState<number | null>(null);
 
   // Column resizing state
@@ -70,8 +71,7 @@ export default function LumafoldApp() {
       }
       if (ctrl && !e.shiftKey && /^[1-9]$/.test(e.key)) {
         const idx = parseInt(e.key) - 1;
-        const visible = state.folders.filter((f) => !f.hidden);
-        const folder = visible[idx];
+        const folder = workspace.visibleFolders(state)[idx];
         if (folder) {
           e.preventDefault();
           store.setActiveFolder(folder.id);
@@ -85,23 +85,15 @@ export default function LumafoldApp() {
   // Column divider resize handlers
   const onDividerMouseDown = useCallback(
     (idx: number, e: React.MouseEvent) => {
-      if (!workspaceRef.current || !state?.activeFolderId) return;
-      const folder = state.folders.find((f) => f.id === state.activeFolderId);
+      if (!workspaceRef.current || !state) return;
+      const folder = workspace.activeFolder(state);
       if (!folder) return;
-
-      const visiblePanels = folder.panels.filter((p) => !p.hidden);
-      const defaultWidths = Array(visiblePanels.length).fill(
-        100 / visiblePanels.length,
-      );
-      const currentWidths =
-        folder.panelWidths && folder.panelWidths.length === visiblePanels.length
-          ? [...folder.panelWidths]
-          : defaultWidths;
+      const folderId = folder.id;
 
       resizeState.current = {
         idx,
         startX: e.clientX,
-        startWidths: currentWidths,
+        startWidths: workspace.panelWidths(folder),
         containerWidth: workspaceRef.current.clientWidth,
       };
       setResizingDividerIdx(idx);
@@ -109,27 +101,16 @@ export default function LumafoldApp() {
       document.body.style.userSelect = 'none';
 
       const onMouseMove = (moveEvent: MouseEvent) => {
-        if (!resizeState.current || !state.activeFolderId) return;
+        if (!resizeState.current) return;
         const {
           idx: dividerIdx,
           startX,
           startWidths,
           containerWidth,
         } = resizeState.current;
-        const deltaPx = moveEvent.clientX - startX;
-        const deltaPercent = (deltaPx / containerWidth) * 100;
-
-        const nextWidths = [...startWidths];
-        const minPercent = 15;
-
-        const leftWidth = startWidths[dividerIdx] + deltaPercent;
-        const rightWidth = startWidths[dividerIdx + 1] - deltaPercent;
-
-        if (leftWidth >= minPercent && rightWidth >= minPercent) {
-          nextWidths[dividerIdx] = leftWidth;
-          nextWidths[dividerIdx + 1] = rightWidth;
-          store.updateFolderWidths(state.activeFolderId, nextWidths);
-        }
+        const deltaPercent =
+          ((moveEvent.clientX - startX) / containerWidth) * 100;
+        store.resizePanels(folderId, dividerIdx, startWidths, deltaPercent);
       };
 
       const onMouseUp = () => {
@@ -155,26 +136,25 @@ export default function LumafoldApp() {
     );
   }
 
-  const activeFolder = state.folders.find((f) => f.id === state.activeFolderId);
+  const activeFolder = workspace.activeFolder(state);
   const visiblePanels = activeFolder
-    ? activeFolder.panels.filter((p) => !p.hidden)
+    ? workspace.visiblePanels(activeFolder)
     : [];
+  const panelWidths = activeFolder ? workspace.panelWidths(activeFolder) : [];
+  const canShowAnotherPanel =
+    !!activeFolder && workspace.canShowAnotherPanel(activeFolder);
   const isFullscreen =
     document.documentElement.getAttribute('data-mode') === 'tab';
 
   const resetEqualWidths = () => {
-    if (!activeFolder) return;
-    const equal = Array(visiblePanels.length).fill(
-      Math.floor(100 / visiblePanels.length),
-    );
-    store.updateFolderWidths(activeFolder.id, equal);
+    if (activeFolder) store.equalizePanels(activeFolder.id);
   };
 
   return (
     <>
       <LumafoldThemeVars
-        fontSize={state.theme.fontSize ?? 13}
-        accentColor={state.theme.accentColor ?? 'amber'}
+        fontSize={state.theme.fontSize}
+        accentColor={state.theme.accentColor}
       />
       <div className="flex h-full w-full flex-col overflow-hidden bg-[var(--workspace-bg)] font-sans text-[var(--text-primary)]">
         {/* ── Unified Top Chrome ── */}
@@ -205,7 +185,7 @@ export default function LumafoldApp() {
                 >
                   <LayoutGrid size={13} />
                 </button>
-                {visiblePanels.length < 3 && (
+                {canShowAnotherPanel && (
                   <button
                     type="button"
                     onClick={() => store.addPanel(activeFolder.id)}
@@ -319,10 +299,7 @@ export default function LumafoldApp() {
           ) : (
             <div className="flex h-full w-full min-w-0 flex-1 overflow-hidden bg-[var(--workspace-bg)] p-1">
               {visiblePanels.map((panel, idx) => {
-                const realIdx = activeFolder.panels.indexOf(panel);
-                const widthStyle = activeFolder.panelWidths?.[idx]
-                  ? { flex: `${activeFolder.panelWidths[idx]} 1 0%` }
-                  : { flex: '1 1 0%' };
+                const widthStyle = { flex: `${panelWidths[idx]} 1 0%` };
 
                 return (
                   <React.Fragment key={panel.id}>
@@ -339,25 +316,12 @@ export default function LumafoldApp() {
                         onKeyDown={(e) => {
                           if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
                             e.preventDefault();
-                            const dividerIdx = idx - 1;
-                            const step = e.key === 'ArrowLeft' ? -2 : 2;
-                            const count = visiblePanels.length;
-                            const currentWidths =
-                              activeFolder.panelWidths &&
-                              activeFolder.panelWidths.length === count
-                                ? [...activeFolder.panelWidths]
-                                : Array(count).fill(100 / count);
-                            const leftWidth = currentWidths[dividerIdx] + step;
-                            const rightWidth =
-                              currentWidths[dividerIdx + 1] - step;
-                            if (leftWidth >= 15 && rightWidth >= 15) {
-                              currentWidths[dividerIdx] = leftWidth;
-                              currentWidths[dividerIdx + 1] = rightWidth;
-                              store.updateFolderWidths(
-                                activeFolder.id,
-                                currentWidths,
-                              );
-                            }
+                            store.resizePanels(
+                              activeFolder.id,
+                              idx - 1,
+                              panelWidths,
+                              e.key === 'ArrowLeft' ? -2 : 2,
+                            );
                           } else if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             resetEqualWidths();
@@ -406,7 +370,7 @@ export default function LumafoldApp() {
                           )
                         }
                         onDragStart={() => {
-                          dragPanelFrom.current = realIdx;
+                          dragPanelFrom.current = panel.id;
                         }}
                         onDragOver={(e) => {
                           e.preventDefault();
@@ -415,12 +379,12 @@ export default function LumafoldApp() {
                         onDrop={() => {
                           if (
                             dragPanelFrom.current !== null &&
-                            dragPanelFrom.current !== realIdx
+                            dragPanelFrom.current !== panel.id
                           ) {
                             store.reorderPanels(
                               activeFolder.id,
                               dragPanelFrom.current,
-                              realIdx,
+                              panel.id,
                             );
                           }
                           dragPanelFrom.current = null;
@@ -466,8 +430,8 @@ export default function LumafoldApp() {
         )}
         {showPanelsModal && activeFolder && (
           <PanelsModal
-            canAddPanel={visiblePanels.length < 3}
-            canUnhide={visiblePanels.length < 3}
+            canAddPanel={canShowAnotherPanel}
+            canUnhide={canShowAnotherPanel}
             onAddPanel={() => store.addPanel(activeFolder.id)}
             panels={activeFolder.panels}
             onHidePanel={(panelId) =>

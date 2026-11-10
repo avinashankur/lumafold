@@ -1,6 +1,7 @@
 import { Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
 import type { Folder } from '../types';
 import { useModal } from '../context/ModalContext';
+import { folderHasContent } from '../lib/workspace';
 import {
   Dialog,
   DialogContent,
@@ -18,12 +19,6 @@ interface Props {
   onUnhideFolder: (id: string) => void;
   onDeleteFolder: (id: string) => void;
   onClose: () => void;
-}
-
-function folderHasContent(folder: Folder): boolean {
-  return folder.panels.some(
-    (p) => p.content && p.content.replace(/<[^>]*>/g, '').trim() !== '',
-  );
 }
 
 export default function FoldersModal({

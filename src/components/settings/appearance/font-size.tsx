@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { DEFAULT_FONT_SIZE } from '@/lib/persistence';
 
 const FONT_SIZES = [12, 13, 14, 15, 16, 17, 18] as const;
 
@@ -23,7 +24,7 @@ export const FontSizeSelectSetting = ({
   fontSize,
   onFontSizeChange,
 }: FontSizeSelectSettingProps) => {
-  const selectedFontSize = isFontSize(fontSize) ? fontSize : 13;
+  const selectedFontSize = isFontSize(fontSize) ? fontSize : DEFAULT_FONT_SIZE;
 
   return (
     <div className="flex items-center justify-between gap-4">

@@ -7,14 +7,14 @@ import { AccentColor } from '@/types';
 interface AppearanceSettingsProps {
   fontSize: number;
   onFontSizeChange: (size: number) => void;
-  accentColor?: AccentColor;
+  accentColor: AccentColor;
   onAccentColorChange?: (color: AccentColor) => void;
 }
 
 export const AppearanceSettings = ({
   fontSize,
   onFontSizeChange,
-  accentColor = 'amber',
+  accentColor,
   onAccentColorChange,
 }: AppearanceSettingsProps) => {
   return (

@@ -3,6 +3,7 @@ import { Download, Upload } from 'lucide-react';
 import { useModal } from '@/context/ModalContext';
 import type { AppState } from '../../types';
 import { Button } from '@/components/ui/button';
+import { toExport } from '@/lib/persistence';
 
 export interface DataSettingsProps {
   state: AppState;
@@ -14,7 +15,7 @@ export const DataSettings = ({ state, onImportState }: DataSettingsProps) => {
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const exportNotes = () => {
-    const blob = new Blob([JSON.stringify(state, null, 2)], {
+    const blob = new Blob([JSON.stringify(toExport(state), null, 2)], {
       type: 'application/json',
     });
     const url = URL.createObjectURL(blob);

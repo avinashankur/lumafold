@@ -10,15 +10,15 @@ export interface Folder {
   name: string;
   hidden: boolean; // folders are hidden, removed from tab bar
   panels: Panel[];
-  panelWidths: number[]; // percentages, e.g. [33, 33, 34]
+  panelWidths: number[]; // percentages, one per visible panel; read via panelWidths()
 }
 
 export type AccentColor =
   'amber' | 'iris' | 'emerald' | 'sapphire' | 'rose' | 'monochrome';
 
 export interface ThemeSettings {
-  fontSize: number; // px, applies to all editors (12–16)
-  accentColor?: AccentColor;
+  fontSize: number; // px, applies to all editors (12–18)
+  accentColor: AccentColor;
 }
 
 export interface PreferencesSettingTypes {
@@ -36,9 +36,13 @@ export interface AISettings {
   customBaseURL: string;
 }
 
-export interface AppState {
+// All folders plus which one is active. Rules live in lib/workspace.ts.
+export interface Workspace {
   folders: Folder[];
-  activeFolderId: string | null;
+  activeFolderId: string | null; // always a visible folder, or null
+}
+
+export interface AppState extends Workspace {
   theme: ThemeSettings;
   preferences: PreferencesSettingTypes;
   ai: AISettings;

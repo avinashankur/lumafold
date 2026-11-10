@@ -5,6 +5,7 @@ import { Panel as PanelType, AISettings } from '../types';
 import { AICommand } from '@/lib/ai/commands';
 import { AICommandMenu } from './ai/AICommandMenu';
 import { cn } from '@/lib/utils';
+import { panelHasContent, plainText } from '@/lib/workspace';
 import { useScrolling } from '@/hooks/useScrolling';
 import { useModal } from '../context/ModalContext';
 
@@ -45,16 +46,13 @@ export default function Panel({
   const { showConfirm } = useModal();
 
   const wordCount = useMemo(() => {
-    if (!panel.content) return 0;
-    const text = panel.content.replace(/<[^>]*>/g, '').trim();
+    const text = plainText(panel.content ?? '');
     if (!text) return 0;
     return text.split(/\s+/).filter(Boolean).length;
   }, [panel.content]);
 
   const handleDelete = () => {
-    const hasContent =
-      panel.content && panel.content.replace(/<[^>]*>/g, '').trim() !== '';
-    if (hasContent) {
+    if (panelHasContent(panel)) {
       showConfirm(
         `Permanently delete "${panel.title}" and its content?`,
         onDelete,
@@ -80,7 +78,7 @@ export default function Panel({
 
   const handleAIAccept = (result: string, command: AICommand) => {
     if (command === 'title') {
-      const plain = result.replace(/<[^>]*>/g, '').trim();
+      const plain = plainText(result);
       if (plain) onRename(plain);
     } else {
       onAIAccept(result);

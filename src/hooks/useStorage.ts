@@ -1,410 +1,176 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-  AccentColor,
   AISettings,
   AppState,
-  Folder,
-  Panel,
   PreferencesSettingTypes,
   ThemeSettings,
+  Workspace,
 } from '../types';
-import { generateFolderName } from '../lib/folderNames';
-
-const DEFAULT_AI_SETTINGS: AISettings = {
-  provider: '',
-  apiKey: '',
-  model: '',
-  customBaseURL: '',
-};
-
-const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
-
-function generateId(): string {
-  return Math.random().toString(36).slice(2, 10);
-}
-
-function makePanel(title = 'Notes', content = ''): Panel {
-  return { id: generateId(), title, content, hidden: false };
-}
-
-function makeFolder(
-  name = 'Folder',
-  panels = [makePanel('Notes'), makePanel('Action Items')],
-): Folder {
-  return {
-    id: generateId(),
-    name,
-    hidden: false,
-    panels,
-    panelWidths: [50, 50],
-  };
-}
-
-const DEFAULT_STATE: AppState = {
-  folders: [
-    makeFolder('Workspace', [
-      makePanel(
-        'Overview',
-        '<p>Summarize the current focus, key context, and important decisions here.</p>',
-      ),
-      makePanel(
-        'Action Items',
-        '<p>Track next steps, owners, and follow-up items here.</p>',
-      ),
-    ]),
-    makeFolder('Reference', [
-      makePanel(
-        'Resources',
-        '<p>Store useful links, supporting notes, and source material here.</p>',
-      ),
-      makePanel(
-        'Notes',
-        '<p>Capture relevant observations and details for later review.</p>',
-      ),
-    ]),
-  ],
-  activeFolderId: null,
-  theme: {
-    fontSize: 13,
-    accentColor: 'amber',
-  },
-  preferences: {
-    showPanelHeaders: true,
-    showTabBarScrollBar: false,
-    showPanelScrollBar: true,
-  },
-  ai: DEFAULT_AI_SETTINGS,
-};
-
-async function loadState(): Promise<AppState> {
-  if (isExtension) {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(
-        'appState',
-        (result: { appState?: AppState }) => {
-          if (result.appState) resolve(result.appState);
-          else resolve(DEFAULT_STATE);
-        },
-      );
-    });
-  } else {
-    const raw = localStorage.getItem('ultrafold_state');
-    return raw ? JSON.parse(raw) : DEFAULT_STATE;
-  }
-}
-
-async function saveState(state: AppState): Promise<void> {
-  if (isExtension) {
-    return new Promise((resolve) => {
-      chrome.storage.local.set({ appState: state }, resolve);
-    });
-  } else {
-    localStorage.setItem('ultrafold_state', JSON.stringify(state));
-  }
-}
+import * as workspace from '../lib/workspace';
+import {
+  browserStorage,
+  createSaver,
+  fromImport,
+  load,
+} from '../lib/persistence';
 
 export function useStorage() {
   const [state, setState] = useState<AppState | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const saver = useMemo(() => createSaver(browserStorage()), []);
 
+  // What loading, normalising and saving mean lives in lib/persistence.
   useEffect(() => {
-    loadState().then((s) => {
-      // Migrate: add hidden:false only for panels missing the property (legacy data)
-      s.folders = s.folders.map((f) => ({
-        ...f,
-        panels: f.panels.map((p) => ({ ...p, hidden: p.hidden ?? false })),
-      }));
-      // Ensure activeFolderId points to a visible folder
-      const visibleFolders = s.folders.filter((f) => !f.hidden);
-      if (
-        !s.activeFolderId ||
-        !visibleFolders.find((f) => f.id === s.activeFolderId)
-      ) {
-        s.activeFolderId = visibleFolders[0]?.id ?? null;
-      }
-      // Migrate: add fontSize for legacy theme
-      if (s.theme && typeof s.theme.fontSize !== 'number') {
-        s.theme = { ...s.theme, fontSize: 13 };
-      }
-      if (s.theme && !s.theme.accentColor) {
-        s.theme = { ...s.theme, accentColor: 'amber' };
-      }
-      const legacyTheme = s.theme as ThemeSettings & {
-        showPanelHeaders?: boolean;
-      };
-      if (!s.preferences) {
-        s.preferences = {
-          showPanelHeaders: legacyTheme.showPanelHeaders ?? true,
-          showTabBarScrollBar: false,
-          showPanelScrollBar: true,
-        };
-      } else {
-        if (typeof s.preferences.showPanelHeaders !== 'boolean') {
-          s.preferences.showPanelHeaders = legacyTheme.showPanelHeaders ?? true;
-        }
-        if (typeof s.preferences.showTabBarScrollBar !== 'boolean') {
-          s.preferences.showTabBarScrollBar = false;
-        }
-        if (typeof s.preferences.showPanelScrollBar !== 'boolean') {
-          s.preferences.showPanelScrollBar = true;
-        }
-      }
-      // Migrate: add ai settings for legacy data
-      if (!s.ai) {
-        s.ai = DEFAULT_AI_SETTINGS;
-      } else {
-        s.ai = { ...DEFAULT_AI_SETTINGS, ...s.ai };
-      }
+    let cancelled = false;
+    load(browserStorage()).then((s) => {
+      if (cancelled) return;
       setState(s);
       setLoaded(true);
     });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Debounced save
   useEffect(() => {
-    if (!state) return;
-    const t = setTimeout(() => saveState(state), 400);
-    return () => clearTimeout(t);
+    if (state) saver.schedule(state);
+  }, [state, saver]);
+
+  // Don't lose the last edit when the popup or tab goes away.
+  useEffect(() => {
+    const flush = () => void saver.flush();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', flush);
+      flush();
+    };
+  }, [saver]);
+
+  // For callbacks that need the latest state without re-subscribing.
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
   }, [state]);
 
   const update = useCallback((updater: (prev: AppState) => AppState) => {
     setState((prev) => (prev ? updater(prev) : prev));
   }, []);
 
-  // ── Folder actions ──────────────────────────────────────────────
-  const addFolder = useCallback(() => {
-    update((s) => {
-      const existingNames = s.folders.map((f) => f.name);
-      const name = generateFolderName(existingNames);
-      const folder = makeFolder(name);
-      return {
-        ...s,
-        folders: [...s.folders, folder],
-        activeFolderId: folder.id,
-      };
-    });
-  }, [update]);
-
-  const deleteFolder = useCallback(
-    (id: string) => {
+  // Folder and Panel rules live in lib/workspace; this only applies them.
+  const apply = useCallback(
+    (change: (current: Workspace) => Workspace) => {
       update((s) => {
-        const folders = s.folders.filter((f) => f.id !== id);
-        const visibleFolders = folders.filter((f) => !f.hidden);
-        const activeFolderId =
-          s.activeFolderId === id
-            ? (visibleFolders[0]?.id ?? null)
-            : s.activeFolderId;
-        return { ...s, folders, activeFolderId };
+        const next = change(s);
+        return next === s ? s : { ...s, ...next };
       });
     },
     [update],
+  );
+
+  // ── Folder actions ──────────────────────────────────────────────
+  const addFolder = useCallback(() => apply(workspace.addFolder), [apply]);
+
+  const deleteFolder = useCallback(
+    (id: string) => apply((w) => workspace.deleteFolder(w, id)),
+    [apply],
   );
 
   const renameFolder = useCallback(
-    (id: string, name: string) => {
-      update((s) => ({
-        ...s,
-        folders: s.folders.map((f) => (f.id === id ? { ...f, name } : f)),
-      }));
-    },
-    [update],
+    (id: string, name: string) =>
+      apply((w) => workspace.renameFolder(w, id, name)),
+    [apply],
   );
 
-  const updateFolderWidths = useCallback(
-    (id: string, panelWidths: number[]) => {
-      update((s) => ({
-        ...s,
-        folders: s.folders.map((f) =>
-          f.id === id ? { ...f, panelWidths } : f,
-        ),
-      }));
-    },
-    [update],
-  );
-
-  // Hide folder: removes from tab bar, switches to next visible folder
   const hideFolderById = useCallback(
-    (id: string) => {
-      update((s) => {
-        const folders = s.folders.map((f) =>
-          f.id === id ? { ...f, hidden: true } : f,
-        );
-        const visibleFolders = folders.filter((f) => !f.hidden);
-        const activeFolderId =
-          s.activeFolderId === id
-            ? (visibleFolders[0]?.id ?? null)
-            : s.activeFolderId;
-        return { ...s, folders, activeFolderId };
-      });
-    },
-    [update],
+    (id: string) => apply((w) => workspace.hideFolder(w, id)),
+    [apply],
   );
 
-  // Unhide folder (called from hidden folders panel)
   const unhideFolderById = useCallback(
-    (id: string) => {
-      update((s) => ({
-        ...s,
-        folders: s.folders.map((f) =>
-          f.id === id ? { ...f, hidden: false } : f,
-        ),
-        activeFolderId: id,
-      }));
-    },
-    [update],
+    (id: string) => apply((w) => workspace.showFolder(w, id)),
+    [apply],
   );
 
   const setActiveFolder = useCallback(
-    (id: string) => {
-      update((s) => ({ ...s, activeFolderId: id }));
-    },
-    [update],
+    (id: string) => apply((w) => workspace.setActiveFolder(w, id)),
+    [apply],
   );
 
   const reorderFolders = useCallback(
-    (from: number, to: number) => {
-      update((s) => {
-        const folders = [...s.folders];
-        const [moved] = folders.splice(from, 1);
-        folders.splice(to, 0, moved);
-        return { ...s, folders };
-      });
-    },
-    [update],
+    (id: string, targetId: string) =>
+      apply((w) => workspace.moveFolder(w, id, targetId)),
+    [apply],
   );
 
   // ── Panel actions ───────────────────────────────────────────────
   const addPanel = useCallback(
-    (folderId: string) => {
-      update((s) => ({
-        ...s,
-        folders: s.folders.map((f) => {
-          if (f.id !== folderId) return f;
-          // Count visible panels — max 3 visible
-          const visibleCount = f.panels.filter((p) => !p.hidden).length;
-          if (visibleCount >= 3) return f;
-          const panels = [...f.panels, makePanel('New Panel')];
-          return { ...f, panels };
-        }),
-      }));
-    },
-    [update],
+    (folderId: string) => apply((w) => workspace.addPanel(w, folderId)),
+    [apply],
   );
 
-  // Hide panel instead of deleting — data preserved
   const hidePanelById = useCallback(
-    (folderId: string, panelId: string) => {
-      update((s) => ({
-        ...s,
-        folders: s.folders.map((f) => {
-          if (f.id !== folderId) return f;
-          return {
-            ...f,
-            panels: f.panels.map((p) =>
-              p.id === panelId ? { ...p, hidden: true } : p,
-            ),
-          };
-        }),
-      }));
-    },
-    [update],
+    (folderId: string, panelId: string) =>
+      apply((w) => workspace.hidePanel(w, folderId, panelId)),
+    [apply],
   );
 
-  // Delete panel permanently
-  const deletePanel = useCallback(
-    (folderId: string, panelId: string) => {
-      update((s) => ({
-        ...s,
-        folders: s.folders.map((f) => {
-          if (f.id !== folderId) return f;
-          return {
-            ...f,
-            panels: f.panels.filter((p) => p.id !== panelId),
-          };
-        }),
-      }));
-    },
-    [update],
-  );
-
-  // Unhide panel
   const unhidePanelById = useCallback(
-    (folderId: string, panelId: string) => {
-      update((s) => ({
-        ...s,
-        folders: s.folders.map((f) => {
-          if (f.id !== folderId) return f;
-          // Don't exceed 3 visible — caller should show modal if blocked
-          if (
-            f.panels.filter((p) => !p.hidden).length >= 3 &&
-            f.panels.find((p) => p.id === panelId)?.hidden
-          ) {
-            return f;
-          }
-          return {
-            ...f,
-            panels: f.panels.map((p) =>
-              p.id === panelId ? { ...p, hidden: false } : p,
-            ),
-          };
-        }),
-      }));
-    },
-    [update],
+    (folderId: string, panelId: string) =>
+      apply((w) => workspace.showPanel(w, folderId, panelId)),
+    [apply],
+  );
+
+  const deletePanel = useCallback(
+    (folderId: string, panelId: string) =>
+      apply((w) => workspace.deletePanel(w, folderId, panelId)),
+    [apply],
   );
 
   const renamePanel = useCallback(
-    (folderId: string, panelId: string, title: string) => {
-      update((s) => ({
-        ...s,
-        folders: s.folders.map((f) =>
-          f.id !== folderId
-            ? f
-            : {
-                ...f,
-                panels: f.panels.map((p) =>
-                  p.id === panelId ? { ...p, title } : p,
-                ),
-              },
-        ),
-      }));
-    },
-    [update],
+    (folderId: string, panelId: string, title: string) =>
+      apply((w) => workspace.renamePanel(w, folderId, panelId, title)),
+    [apply],
   );
 
   const updatePanelContent = useCallback(
-    (folderId: string, panelId: string, content: string) => {
-      update((s) => ({
-        ...s,
-        folders: s.folders.map((f) =>
-          f.id !== folderId
-            ? f
-            : {
-                ...f,
-                panels: f.panels.map((p) =>
-                  p.id === panelId ? { ...p, content } : p,
-                ),
-              },
-        ),
-      }));
-    },
-    [update],
+    (folderId: string, panelId: string, content: string) =>
+      apply((w) => workspace.setPanelContent(w, folderId, panelId, content)),
+    [apply],
   );
 
   const reorderPanels = useCallback(
-    (folderId: string, from: number, to: number) => {
-      update((s) => ({
-        ...s,
-        folders: s.folders.map((f) => {
-          if (f.id !== folderId) return f;
-          const panels = [...f.panels];
-          const [moved] = panels.splice(from, 1);
-          panels.splice(to, 0, moved);
-          return { ...f, panels };
-        }),
-      }));
-    },
-    [update],
+    (folderId: string, panelId: string, targetPanelId: string) =>
+      apply((w) => workspace.movePanel(w, folderId, panelId, targetPanelId)),
+    [apply],
+  );
+
+  const resizePanels = useCallback(
+    (
+      folderId: string,
+      dividerIndex: number,
+      startWidths: number[],
+      deltaPercent: number,
+    ) =>
+      apply((w) =>
+        workspace.resizePanels(
+          w,
+          folderId,
+          dividerIndex,
+          startWidths,
+          deltaPercent,
+        ),
+      ),
+    [apply],
+  );
+
+  const equalizePanels = useCallback(
+    (folderId: string) => apply((w) => workspace.equalizePanels(w, folderId)),
+    [apply],
   );
 
   // ── Theme actions ───────────────────────────────────────────────
@@ -435,82 +201,14 @@ export function useStorage() {
     [update],
   );
 
-  // Import: replace state with imported data (validated, migrated)
+  // Import: replace state with a backup file's contents. False if the
+  // file is not a Lumafold export.
   const importState = useCallback((data: unknown) => {
-    if (!data || typeof data !== 'object') return false;
-    const d = data as Record<string, unknown>;
-    if (!Array.isArray(d.folders)) return false;
-    const s: AppState = {
-      folders: d.folders.map((f: unknown) => {
-        const fd = (f as Record<string, unknown>) ?? {};
-        const panels = (Array.isArray(fd.panels) ? fd.panels : []).map(
-          (p: unknown) => {
-            const pp = (p as Record<string, unknown>) ?? {};
-            return {
-              id: String(pp.id ?? generateId()),
-              title: String(pp.title ?? 'Notes'),
-              content: String(pp.content ?? ''),
-              hidden: Boolean(pp.hidden ?? false),
-            };
-          },
-        );
-        return {
-          id: String(fd.id ?? generateId()),
-          name: String(fd.name ?? 'Folder'),
-          hidden: Boolean(fd.hidden ?? false),
-          panels,
-          panelWidths: (Array.isArray(fd.panelWidths)
-            ? fd.panelWidths
-            : [50, 50]) as number[],
-        };
-      }) as Folder[],
-      activeFolderId:
-        typeof d.activeFolderId === 'string' ? d.activeFolderId : null,
-      theme: {
-        fontSize: Number((d.theme as Record<string, unknown>)?.fontSize) || 13,
-        accentColor:
-          ((d.theme as Record<string, unknown>)?.accentColor as AccentColor) ||
-          'amber',
-      },
-      preferences: {
-        showPanelHeaders:
-          typeof (d.preferences as Record<string, unknown>)
-            ?.showPanelHeaders === 'boolean'
-            ? Boolean(
-                (d.preferences as Record<string, unknown>).showPanelHeaders,
-              )
-            : typeof (d.theme as Record<string, unknown>)?.showPanelHeaders ===
-                'boolean'
-              ? Boolean((d.theme as Record<string, unknown>).showPanelHeaders)
-              : true,
-        showTabBarScrollBar:
-          typeof (d.preferences as Record<string, unknown>)
-            ?.showTabBarScrollBar === 'boolean'
-            ? Boolean(
-                (d.preferences as Record<string, unknown>).showTabBarScrollBar,
-              )
-            : false,
-        showPanelScrollBar:
-          typeof (d.preferences as Record<string, unknown>)
-            ?.showPanelScrollBar === 'boolean'
-            ? Boolean(
-                (d.preferences as Record<string, unknown>).showPanelScrollBar,
-              )
-            : true,
-      },
-      ai: {
-        ...DEFAULT_AI_SETTINGS,
-        ...((d.ai as Partial<typeof DEFAULT_AI_SETTINGS>) ?? {}),
-      },
-    };
-    const visibleFolders = s.folders.filter((f) => !f.hidden);
-    if (
-      !s.activeFolderId ||
-      !visibleFolders.find((f) => f.id === s.activeFolderId)
-    ) {
-      s.activeFolderId = visibleFolders[0]?.id ?? null;
-    }
-    setState(s);
+    const current = stateRef.current;
+    if (!current) return false;
+    const next = fromImport(data, current);
+    if (!next) return false;
+    setState(next);
     return true;
   }, []);
 
@@ -520,7 +218,6 @@ export function useStorage() {
     addFolder,
     deleteFolder,
     renameFolder,
-    updateFolderWidths,
     hideFolderById,
     unhideFolderById,
     setActiveFolder,
@@ -532,6 +229,8 @@ export function useStorage() {
     renamePanel,
     updatePanelContent,
     reorderPanels,
+    resizePanels,
+    equalizePanels,
     setTheme,
     setPreferences,
     setAISettings,

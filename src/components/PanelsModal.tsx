@@ -1,6 +1,7 @@
 import { Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
 import type { Panel } from '../types';
 import { useModal } from '../context/ModalContext';
+import { MAX_VISIBLE_PANELS, panelHasContent } from '../lib/workspace';
 import {
   Dialog,
   DialogContent,
@@ -37,16 +38,16 @@ export default function PanelsModal({
 
   const handleUnhide = (panelId: string) => {
     if (!canUnhide) {
-      showAlert('Hide another panel first — max 3 visible panels.');
+      showAlert(
+        `Hide another panel first — max ${MAX_VISIBLE_PANELS} visible panels.`,
+      );
       return;
     }
     onUnhidePanel(panelId);
   };
 
   const handleDelete = (panel: Panel) => {
-    const hasContent =
-      panel.content && panel.content.replace(/<[^>]*>/g, '').trim() !== '';
-    if (hasContent) {
+    if (panelHasContent(panel)) {
       showConfirm(
         `Permanently delete "${panel.title}" and all its content?`,
         () => onDeletePanel(panel.id),
@@ -81,7 +82,7 @@ export default function PanelsModal({
               className="text-muted-foreground hover:text-foreground w-full justify-start border-dashed text-xs"
             >
               <Plus data-icon="inline-start" className="size-3.5" />
-              Add panel (max 3)
+              Add panel (max {MAX_VISIBLE_PANELS})
             </Button>
           )}
 
