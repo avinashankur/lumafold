@@ -17,7 +17,7 @@ export default defineConfig([
     },
   },
   {
-    ignores: ['node_modules', 'dist', 'build', '.agents'],
+    ignores: ['node_modules', 'dist', 'build', '.agents', '.claude'],
   },
   tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
