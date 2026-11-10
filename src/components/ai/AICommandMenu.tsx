@@ -17,6 +17,7 @@ import {
 } from '@/lib/ai/actions';
 import { AISettings } from '@/types';
 import { cn } from '@/lib/utils';
+import { matchShortcut } from '@/lib/shortcuts';
 
 // Icons are the one thing an action needs from the view. An action without
 // an entry here gets the generic one.
@@ -78,11 +79,10 @@ export function AICommandMenu({
     };
   }, [menuPos]);
 
-  // Ctrl+Shift+A shortcut: open menu when this panel's editor has focus
+  // AI menu shortcut: open menu when this panel's editor has focus
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const ctrl = e.ctrlKey || e.metaKey;
-      if (ctrl && e.shiftKey && e.key === 'A') {
+      if (matchShortcut(e)?.id === 'aiMenu') {
         const container = containerRef.current;
         if (!container) return;
         // Only open if this panel contains the focused element

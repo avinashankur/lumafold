@@ -1,4 +1,5 @@
 import { Kbd } from '@/components/ui/kbd';
+import { SHORTCUTS } from '@/lib/shortcuts';
 
 type ShortcutItem = {
   keys: string[];
@@ -50,11 +51,10 @@ const ShortcutSection = ({
 };
 
 export const ShortcutsSettings = () => {
-  const appShortcuts: ShortcutItem[] = [
-    { keys: ['Ctrl', 'T'], description: 'New folder' },
-    { keys: ['Ctrl', 'Shift', ']'], description: 'Add panel' },
-    { keys: ['Ctrl', ','], description: 'Settings' },
-  ];
+  // The editor shortcuts below are the editor's own and are listed by hand.
+  const appShortcuts: ShortcutItem[] = SHORTCUTS.map(
+    ({ keys, description }) => ({ keys, description }),
+  );
 
   const essentials: ShortcutItem[] = [
     { keys: ['Ctrl', 'C'], description: 'Copy' },

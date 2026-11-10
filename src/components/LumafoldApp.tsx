@@ -18,6 +18,11 @@ import { useTheme } from '@/components/theme-provider';
 import { LumafoldThemeVars } from '@/providers/lumafold-theme-vars';
 import { cn } from '@/lib/utils';
 import * as workspace from '@/lib/workspace';
+import {
+  type ShortcutMatch,
+  matchShortcut,
+  shortcutLabel,
+} from '@/lib/shortcuts';
 
 export default function LumafoldApp() {
   const store = useStorage();
@@ -49,38 +54,44 @@ export default function LumafoldApp() {
     };
   }, []);
 
+  // One listener for the app's shortcuts; which keys mean what is decided
+  // by lib/shortcuts. The ref keeps it reading the latest state without
+  // re-subscribing on every render.
+  const onShortcut = useRef<(match: ShortcutMatch) => boolean>(() => false);
   useEffect(() => {
-    if (!state) return;
-    const handler = (e: KeyboardEvent) => {
-      const ctrl = e.ctrlKey || e.metaKey;
-      if (ctrl && e.key === 't') {
-        e.preventDefault();
-        store.addFolder();
-      }
-      if (ctrl && e.key === ',') {
-        e.preventDefault();
-        setShowSettings((s) => !s);
-      }
-      if (ctrl && e.shiftKey && e.key === 'L') {
-        e.preventDefault();
-        setColorTheme(colorTheme === 'dark' ? 'light' : 'dark');
-      }
-      if (ctrl && e.shiftKey && e.key === ']') {
-        e.preventDefault();
-        if (state.activeFolderId) store.addPanel(state.activeFolderId);
-      }
-      if (ctrl && !e.shiftKey && /^[1-9]$/.test(e.key)) {
-        const idx = parseInt(e.key) - 1;
-        const folder = workspace.visibleFolders(state)[idx];
-        if (folder) {
-          e.preventDefault();
-          store.setActiveFolder(folder.id);
+    onShortcut.current = (match) => {
+      if (!state) return false;
+      switch (match.id) {
+        case 'newFolder':
+          store.addFolder();
+          return true;
+        case 'settings':
+          setShowSettings((s) => !s);
+          return true;
+        case 'toggleTheme':
+          setColorTheme(colorTheme === 'dark' ? 'light' : 'dark');
+          return true;
+        case 'addPanel':
+          if (state.activeFolderId) store.addPanel(state.activeFolderId);
+          return true;
+        case 'switchFolder': {
+          const folder = workspace.visibleFolders(state)[match.index ?? -1];
+          if (folder) store.setActiveFolder(folder.id);
+          return !!folder;
         }
+        default:
+          return false; // aiMenu is handled by the focused panel
       }
+    };
+  });
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const match = matchShortcut(e);
+      if (match && onShortcut.current(match)) e.preventDefault();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [colorTheme, setColorTheme, state, store]);
+  }, []);
 
   // Column divider resize handlers
   const onDividerMouseDown = useCallback(
@@ -190,7 +201,7 @@ export default function LumafoldApp() {
                     type="button"
                     onClick={() => store.addPanel(activeFolder.id)}
                     className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
-                    title="Add panel (Ctrl+Shift+])"
+                    title={`Add panel (${shortcutLabel('addPanel')})`}
                     aria-label="Add panel"
                   >
                     <Plus size={13} />
@@ -234,7 +245,7 @@ export default function LumafoldApp() {
               type="button"
               onClick={() => setShowSettings(true)}
               className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
-              title="Settings (Ctrl+,)"
+              title={`Settings (${shortcutLabel('settings')})`}
               aria-label="Settings"
             >
               <SettingsIcon size={13} />
@@ -253,7 +264,7 @@ export default function LumafoldApp() {
               <div className="flex items-center gap-1.5 text-xs">
                 <span>Press</span>
                 <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--surface-2)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-secondary)]">
-                  Ctrl+T
+                  {shortcutLabel('newFolder')}
                 </kbd>
                 <span>or</span>
                 <button
@@ -276,7 +287,7 @@ export default function LumafoldApp() {
                   <>
                     <span>Press</span>
                     <kbd className="rounded border border-[var(--border-subtle)] bg-[var(--surface-2)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-secondary)]">
-                      Ctrl+Shift+]
+                      {shortcutLabel('addPanel')}
                     </kbd>
                     <span>or</span>
                     <button

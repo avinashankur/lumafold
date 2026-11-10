@@ -18,6 +18,7 @@ import {
   switchProvider,
   testConnection as testAIConnection,
 } from '@/lib/ai/actions';
+import { shortcutLabel } from '@/lib/shortcuts';
 
 interface Props {
   aiSettings: AISettings;
@@ -182,7 +183,7 @@ export function AISettingsSection({ aiSettings, onAISettingsChange }: Props) {
       <div className="border-border bg-muted/40 text-muted-foreground rounded-md border px-3 py-2 text-[11px] leading-5">
         <strong className="text-foreground font-medium">How to use:</strong>{' '}
         Right-click any panel to open the AI menu, or press{' '}
-        <Kbd>Ctrl+Shift+A</Kbd> while a panel is focused.
+        <Kbd>{shortcutLabel('aiMenu')}</Kbd> while a panel is focused.
       </div>
     </div>
   );

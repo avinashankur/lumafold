@@ -3,7 +3,8 @@ import { Plus, EyeOff, Trash2, Pencil } from 'lucide-react';
 import { Folder } from '../types';
 import { cn } from '../lib/utils';
 import { folderHasContent, visibleFolders } from '../lib/workspace';
-import { useModal } from '../context/ModalContext';
+import { shortcutLabel } from '../lib/shortcuts';
+import { useConfirmDelete } from '@/hooks/useConfirmDelete';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -35,7 +36,7 @@ export default function TabBar({
   onReorder,
   showScrollBar,
 }: Props) {
-  const { showConfirm } = useModal();
+  const confirmDelete = useConfirmDelete();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,17 +54,10 @@ export default function TabBar({
     if (draft.trim()) onRename(id, draft.trim());
   };
 
-  const handleDelete = (folder: Folder) => {
-    if (folderHasContent(folder)) {
-      showConfirm(
-        `Permanently delete "${folder.name}" and all its content?`,
-        () => onDelete(folder.id),
-        { confirmLabel: 'Delete', danger: true },
-      );
-    } else {
-      onDelete(folder.id);
-    }
-  };
+  const handleDelete = (folder: Folder) =>
+    confirmDelete(folder.name, folderHasContent(folder), () =>
+      onDelete(folder.id),
+    );
 
   // Only show visible folders in the tab bar
   const tabs = visibleFolders({ folders });
@@ -170,7 +164,7 @@ export default function TabBar({
       <button
         onClick={onAdd}
         className="ml-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[var(--text-tertiary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
-        title="New Folder (Ctrl+T)"
+        title={`New Folder (${shortcutLabel('newFolder')})`}
       >
         <Plus size={13} />
       </button>
