@@ -23,6 +23,7 @@ import {
   matchShortcut,
   shortcutLabel,
 } from '@/lib/shortcuts';
+import { setFloatingBounds } from '@/lib/floating-window';
 
 export default function LumafoldApp() {
   const store = useStorage();
@@ -154,8 +155,46 @@ export default function LumafoldApp() {
   const panelWidths = activeFolder ? workspace.panelWidths(activeFolder) : [];
   const canShowAnotherPanel =
     !!activeFolder && workspace.canShowAnotherPanel(activeFolder);
+  const isFloating =
+    new URLSearchParams(window.location.search).get('mode') === 'floating';
   const isFullscreen =
     document.documentElement.getAttribute('data-mode') === 'tab';
+
+  useEffect(() => {
+    if (!isFloating) return;
+
+    const saveCurrentBounds = () => {
+      const bounds = {
+        width: window.outerWidth,
+        height: window.outerHeight,
+        left: window.screenX,
+        top: window.screenY,
+      };
+      setFloatingBounds(bounds).catch(console.error);
+    };
+
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    const onResize = () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(saveCurrentBounds, 300);
+    };
+
+    const flushBounds = () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      saveCurrentBounds();
+    };
+
+    window.addEventListener('resize', onResize);
+    window.addEventListener('beforeunload', flushBounds);
+    window.addEventListener('pagehide', flushBounds);
+
+    return () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('beforeunload', flushBounds);
+      window.removeEventListener('pagehide', flushBounds);
+    };
+  }, [isFloating]);
 
   const resetEqualWidths = () => {
     if (activeFolder) store.equalizePanels(activeFolder.id);
@@ -167,7 +206,12 @@ export default function LumafoldApp() {
         fontSize={state.theme.fontSize}
         accentColor={state.theme.accentColor}
       />
-      <div className="flex h-full w-full flex-col overflow-hidden bg-[var(--workspace-bg)] font-sans text-[var(--text-primary)]">
+      <div
+        className={cn(
+          'flex flex-col overflow-hidden bg-[var(--workspace-bg)] font-sans text-[var(--text-primary)]',
+          isFloating ? 'h-screen w-screen' : 'h-full w-full',
+        )}
+      >
         {/* ── Unified Top Chrome ── */}
         <header className="flex h-8 shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--header-bg)] px-2">
           <div className="min-w-0 flex-1 overflow-hidden">

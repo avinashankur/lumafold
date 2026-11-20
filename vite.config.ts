@@ -20,8 +20,6 @@ export default defineConfig({
           mkdirSync('dist/icons', { recursive: true });
           if (existsSync('manifest.json'))
             copyFileSync('manifest.json', 'dist/manifest.json');
-          if (existsSync('background.js'))
-            copyFileSync('background.js', 'dist/background.js');
           for (const size of [16, 48, 128]) {
             const src = `icons/icon${size}.png`;
             if (existsSync(src))
@@ -40,6 +38,17 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolve(__dirname, 'index.html'),
+        background: resolve(__dirname, 'src/background.ts'),
+      },
+      output: {
+        entryFileNames: (chunkInfo) => {
+          if (chunkInfo.name === 'background') {
+            return 'background.js';
+          }
+          return 'assets/[name]-[hash].js';
+        },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
   },
