@@ -47,6 +47,9 @@ export default function LumafoldApp() {
 
   const { state, loaded } = store;
 
+  const isFloating =
+    new URLSearchParams(window.location.search).get('mode') === 'floating';
+
   useEffect(() => {
     return () => {
       document.body.style.cursor = '';
@@ -167,7 +170,12 @@ export default function LumafoldApp() {
         fontSize={state.theme.fontSize}
         accentColor={state.theme.accentColor}
       />
-      <div className="flex h-full w-full flex-col overflow-hidden bg-[var(--workspace-bg)] font-sans text-[var(--text-primary)]">
+      <div
+        className={cn(
+          'flex flex-col overflow-hidden bg-[var(--workspace-bg)] font-sans text-[var(--text-primary)]',
+          isFloating ? 'h-screen w-screen' : 'h-full w-full',
+        )}
+      >
         {/* ── Unified Top Chrome ── */}
         <header className="flex h-8 shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--header-bg)] px-2">
           <div className="min-w-0 flex-1 overflow-hidden">

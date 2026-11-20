@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '../lib/utils';
 import type { AppState } from '../types';
 import { Database, Keyboard, Palette, Settings2, Sparkles } from 'lucide-react';
@@ -15,6 +15,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  type DisplayMode,
+  STORAGE_KEY_DISPLAY_MODE,
+  getDisplayMode,
+  setDisplayMode,
+} from '@/lib/floating-window';
 
 interface Props {
   open?: boolean;
@@ -44,6 +50,98 @@ export default function Settings({
   const [activeSection, setActiveSection] = useState<
     'appearance' | 'preferences' | 'data' | 'shortcuts' | 'ai'
   >('appearance');
+
+  const [displayMode, setDisplayModeState] = useState<DisplayMode>('popup');
+
+  useEffect(() => {
+    getDisplayMode().then(setDisplayModeState).catch(console.error);
+
+    if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+      const listener = (
+        changes: Record<string, chrome.storage.StorageChange>,
+        areaName: string,
+      ) => {
+        if (areaName === 'local' && changes[STORAGE_KEY_DISPLAY_MODE]) {
+          const newMode =
+            changes[STORAGE_KEY_DISPLAY_MODE].newValue === 'floating'
+              ? 'floating'
+              : 'popup';
+          setDisplayModeState(newMode);
+        }
+      };
+      chrome.storage.onChanged.addListener(listener);
+      return () => {
+        chrome.storage.onChanged.removeListener(listener);
+      };
+    }
+  }, []);
+
+  const handleDisplayModeChange = async (nextMode: DisplayMode) => {
+    setDisplayModeState(nextMode);
+    await setDisplayMode(nextMode);
+
+    if (nextMode === 'floating') {
+      // 1. Update action popup to ""
+      if (typeof chrome !== 'undefined' && chrome.action?.setPopup) {
+        try {
+          await chrome.action.setPopup({ popup: '' });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // 2. Open (or focus) floating window via background service worker
+      if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+        try {
+          await chrome.runtime.sendMessage({ type: 'OPEN_FLOATING_WINDOW' });
+        } catch {
+          window.open(
+            chrome.runtime.getURL('index.html?mode=floating'),
+            '_blank',
+            'popup=yes',
+          );
+        }
+      } else {
+        window.open(
+          window.location.origin + '?mode=floating',
+          '_blank',
+          'popup=yes',
+        );
+      }
+
+      // 3. Close the current default_popup (window.close())
+      const isFloating =
+        new URLSearchParams(window.location.search).get('mode') === 'floating';
+      const isTab =
+        document.documentElement.getAttribute('data-mode') === 'tab';
+      if (!isFloating && !isTab) {
+        window.close();
+      }
+    } else {
+      // 1. Restore action popup to "index.html"
+      if (typeof chrome !== 'undefined' && chrome.action?.setPopup) {
+        try {
+          await chrome.action.setPopup({ popup: 'index.html' });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // 2. If in floating mode, close floating window (and openPopup if supported)
+      const isFloating =
+        new URLSearchParams(window.location.search).get('mode') === 'floating';
+      if (isFloating) {
+        if (typeof chrome !== 'undefined' && chrome.action?.openPopup) {
+          try {
+            await chrome.action.openPopup();
+          } catch (e) {
+            console.log('chrome.action.openPopup not supported or failed:', e);
+          }
+        }
+        window.close();
+      }
+    }
+  };
 
   const sections = [
     { id: 'appearance' as const, label: 'Appearance', icon: Palette },
@@ -142,6 +240,8 @@ export default function Settings({
               <PreferencesSettings
                 preferences={preferences}
                 onPreferencesChange={onPreferencesChange}
+                displayMode={displayMode}
+                onDisplayModeChange={handleDisplayModeChange}
               />
             )}
 

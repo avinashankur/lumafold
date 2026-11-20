@@ -27,7 +27,8 @@ html[data-mode='popup'] #root {
   max-width: 100%;
 }
 
-html[data-mode='popup'] footer {
+html[data-mode='popup'] footer,
+html[data-mode='floating'] footer {
   display: none !important;
 }
 

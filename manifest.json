@@ -12,9 +12,10 @@
     }
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
-  "permissions": ["storage", "tabs"],
+  "permissions": ["storage", "tabs", "system.display"],
   "commands": {
     "open-fullscreen": {
       "suggested_key": { "default": "Alt+Shift+N" },
