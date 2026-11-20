@@ -6,7 +6,7 @@ import {
   ONE_WORD_NAMES,
   ADJECTIVES,
   NOUNS,
-} from './folderNames.ts';
+} from '../../src/lib/folderNames.ts';
 
 test('generateFolderName returns a non-empty name matching 1-word or 2-word format', () => {
   const name = generateFolderName();

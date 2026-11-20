@@ -1,6 +1,6 @@
 import test, { mock } from 'node:test';
 import assert from 'node:assert/strict';
-import type { AppState } from '../types.ts';
+import type { AppState } from '../../src/types.ts';
 import {
   STATE_KEY,
   UNREADABLE_KEY,
@@ -11,8 +11,8 @@ import {
   memoryAdapter,
   normalise,
   toExport,
-} from './persistence.ts';
-import { panelWidths } from './workspace.ts';
+} from '../../src/lib/persistence.ts';
+import { panelWidths } from '../../src/lib/workspace.ts';
 
 // ── Fixtures ────────────────────────────────────────────────────
 

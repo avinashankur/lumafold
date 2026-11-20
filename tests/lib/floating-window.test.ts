@@ -6,7 +6,7 @@ import {
   MIN_FLOATING_HEIGHT,
   getFloatingBounds,
   sanitizeBounds,
-} from './floating-window.ts';
+} from '../../src/lib/floating-window.ts';
 
 test('sanitizeBounds: returns default bounds when undefined or null', () => {
   assert.deepEqual(sanitizeBounds(), DEFAULT_FLOATING_BOUNDS);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import type { Folder, Panel, Workspace } from '../types.ts';
+import type { Folder, Panel, Workspace } from '../../src/types.ts';
 import {
   MAX_VISIBLE_PANELS,
   MIN_PANEL_WIDTH,
@@ -30,7 +30,7 @@ import {
   visibleFolders,
   visiblePanels,
   withValidActiveFolder,
-} from './workspace.ts';
+} from '../../src/lib/workspace.ts';
 
 // ── Fixtures ────────────────────────────────────────────────────
 

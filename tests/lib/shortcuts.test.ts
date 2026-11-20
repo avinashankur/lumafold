@@ -5,7 +5,7 @@ import {
   type KeyPress,
   matchShortcut,
   shortcutLabel,
-} from './shortcuts.ts';
+} from '../../src/lib/shortcuts.ts';
 
 function press(key: string, mods: Partial<KeyPress> = {}): KeyPress {
   return {
