@@ -23,7 +23,6 @@ import {
   matchShortcut,
   shortcutLabel,
 } from '@/lib/shortcuts';
-import { setFloatingBounds } from '@/lib/floating-window';
 
 export default function LumafoldApp() {
   const store = useStorage();
@@ -50,42 +49,6 @@ export default function LumafoldApp() {
 
   const isFloating =
     new URLSearchParams(window.location.search).get('mode') === 'floating';
-
-  useEffect(() => {
-    if (!isFloating) return;
-
-    const saveCurrentBounds = () => {
-      const bounds = {
-        width: window.outerWidth,
-        height: window.outerHeight,
-        left: window.screenX,
-        top: window.screenY,
-      };
-      setFloatingBounds(bounds).catch(console.error);
-    };
-
-    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-    const onResize = () => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(saveCurrentBounds, 300);
-    };
-
-    const flushBounds = () => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      saveCurrentBounds();
-    };
-
-    window.addEventListener('resize', onResize);
-    window.addEventListener('beforeunload', flushBounds);
-    window.addEventListener('pagehide', flushBounds);
-
-    return () => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('beforeunload', flushBounds);
-      window.removeEventListener('pagehide', flushBounds);
-    };
-  }, [isFloating]);
 
   useEffect(() => {
     return () => {

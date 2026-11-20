@@ -27,14 +27,38 @@ export interface WindowArea {
   height?: number;
 }
 
+export type ScreenArea = WindowArea;
+
 /**
- * Validates and sanitizes window bounds.
+ * Retrieves bounds for all connected and enabled displays.
+ */
+export async function getConnectedDisplays(): Promise<WindowArea[]> {
+  if (typeof chrome !== 'undefined' && chrome.system?.display?.getInfo) {
+    try {
+      const displays = await chrome.system.display.getInfo();
+      return displays
+        .filter((d) => d && d.bounds && d.isEnabled !== false)
+        .map((d) => ({
+          left: d.bounds.left,
+          top: d.bounds.top,
+          width: d.bounds.width,
+          height: d.bounds.height,
+        }));
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+/**
+ * Validates and sanitizes window bounds against connected screens.
  * If left or top are off-screen (e.g. unplugged monitor) or invalid,
  * they are omitted so Chrome places the window on the primary display.
  */
 export function sanitizeBounds(
   bounds?: Partial<WindowBounds> | null,
-  existingWindows?: WindowArea[],
+  screens?: WindowArea[],
 ): WindowBounds {
   const width =
     typeof bounds?.width === 'number' &&
@@ -65,49 +89,37 @@ export function sanitizeBounds(
   const roundedLeft = Math.round(left);
   const roundedTop = Math.round(top);
 
-  // Validate coordinates against existing windows if available
-  if (existingWindows && existingWindows.length > 0) {
-    const validWindows = existingWindows.filter(
-      (w): w is { left: number; top: number; width: number; height: number } =>
-        typeof w.left === 'number' &&
-        Number.isFinite(w.left) &&
-        typeof w.top === 'number' &&
-        Number.isFinite(w.top) &&
-        typeof w.width === 'number' &&
-        Number.isFinite(w.width) &&
-        typeof w.height === 'number' &&
-        Number.isFinite(w.height),
+  // Validate coordinates against connected screens if available
+  if (screens && screens.length > 0) {
+    const validScreens = screens.filter(
+      (s): s is { left: number; top: number; width: number; height: number } =>
+        typeof s.left === 'number' &&
+        Number.isFinite(s.left) &&
+        typeof s.top === 'number' &&
+        Number.isFinite(s.top) &&
+        typeof s.width === 'number' &&
+        Number.isFinite(s.width) &&
+        s.width > 0 &&
+        typeof s.height === 'number' &&
+        Number.isFinite(s.height) &&
+        s.height > 0,
     );
 
-    if (validWindows.length > 0) {
-      // Find overall boundary of active displays spanned by open windows
-      const minLeft = Math.min(...validWindows.map((w) => w.left));
-      const maxRight = Math.max(...validWindows.map((w) => w.left + w.width));
-      const minTop = Math.min(...validWindows.map((w) => w.top));
-      const maxBottom = Math.max(...validWindows.map((w) => w.top + w.height));
-
-      // Allow a reasonable margin for window chrome and position near screen edges
+    if (validScreens.length > 0) {
       const margin = 100;
-      const isHorizontallyOnScreen =
-        roundedLeft + width >= minLeft - margin &&
-        roundedLeft <= maxRight + margin;
-      const isVerticallyOnScreen =
-        roundedTop + height >= minTop - margin &&
-        roundedTop <= maxBottom + margin;
+      const isOnScreen = validScreens.some((s) => {
+        const isHorizontallyOnScreen =
+          roundedLeft + width >= s.left - margin &&
+          roundedLeft <= s.left + s.width + margin;
+        const isVerticallyOnScreen =
+          roundedTop + height >= s.top - margin &&
+          roundedTop <= s.top + s.height + margin;
+        return isHorizontallyOnScreen && isVerticallyOnScreen;
+      });
 
-      if (!isHorizontallyOnScreen || !isVerticallyOnScreen) {
+      if (!isOnScreen) {
         return { width, height };
       }
-    }
-  } else {
-    // Basic sanity checks when no window reference is available
-    if (
-      roundedLeft < -1000 ||
-      roundedLeft > 10000 ||
-      roundedTop < -500 ||
-      roundedTop > 10000
-    ) {
-      return { width, height };
     }
   }
 
@@ -134,13 +146,19 @@ export async function setDisplayMode(mode: DisplayMode): Promise<void> {
   }
 }
 
-export async function getFloatingBounds(): Promise<WindowBounds> {
+export async function getFloatingBounds(
+  screens?: WindowArea[],
+): Promise<WindowBounds> {
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     try {
       const data = await chrome.storage.local.get(STORAGE_KEY_BOUNDS);
       const saved = data[STORAGE_KEY_BOUNDS];
       if (saved && typeof saved === 'object') {
-        return sanitizeBounds(saved as Partial<WindowBounds>);
+        const availableScreens = screens ?? (await getConnectedDisplays());
+        return sanitizeBounds(
+          saved as Partial<WindowBounds>,
+          availableScreens.length > 0 ? availableScreens : undefined,
+        );
       }
     } catch {
       return DEFAULT_FLOATING_BOUNDS;

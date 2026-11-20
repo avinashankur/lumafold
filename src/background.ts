@@ -5,10 +5,9 @@ import {
   getDisplayMode,
   getFloatingBounds,
   getSessionWindowId,
-  sanitizeBounds,
   setFloatingBounds,
   setSessionWindowId,
-} from './lib/floating-window';
+} from './lib/floating-window.ts';
 
 // ── Open fullscreen tab via keyboard shortcut ───────────────────
 chrome.commands.onCommand.addListener((command) => {
@@ -54,7 +53,21 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 });
 
 // ── Floating Window Management ──────────────────────────────────
-export async function openOrFocusFloatingWindow(): Promise<number | undefined> {
+let pendingOpenOperation: Promise<number | undefined> | null = null;
+
+export function openOrFocusFloatingWindow(): Promise<number | undefined> {
+  if (pendingOpenOperation) {
+    return pendingOpenOperation;
+  }
+
+  pendingOpenOperation = performOpenOrFocusFloatingWindow().finally(() => {
+    pendingOpenOperation = null;
+  });
+
+  return pendingOpenOperation;
+}
+
+async function performOpenOrFocusFloatingWindow(): Promise<number | undefined> {
   const existingWindowId = await getSessionWindowId();
 
   if (existingWindowId !== null) {
@@ -74,16 +87,8 @@ export async function openOrFocusFloatingWindow(): Promise<number | undefined> {
     }
   }
 
-  // Retrieve saved bounds and existing windows for validation
-  const savedBounds = await getFloatingBounds();
-  let existingWindows: chrome.windows.Window[] = [];
-  try {
-    existingWindows = await chrome.windows.getAll();
-  } catch {
-    // ignore
-  }
-
-  const validBounds = sanitizeBounds(savedBounds, existingWindows);
+  // Retrieve saved bounds validated against connected screens
+  const validBounds = await getFloatingBounds();
 
   const createData: chrome.windows.CreateData = {
     url: chrome.runtime.getURL('index.html?mode=floating'),
