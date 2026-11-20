@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import type { AISettings } from '../../types.ts';
+import type { AISettings } from '../../../src/types.ts';
 import {
   AI_ACTIONS,
   AI_PROVIDERS,
@@ -10,7 +10,7 @@ import {
   runAction,
   switchProvider,
   testConnection,
-} from './actions.ts';
+} from '../../../src/lib/ai/actions.ts';
 
 // ── Fixtures ────────────────────────────────────────────────────
 

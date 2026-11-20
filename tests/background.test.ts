@@ -101,7 +101,7 @@ let onBoundsChangedListener:
   },
 };
 
-const { openOrFocusFloatingWindow } = await import('./background.ts');
+const { openOrFocusFloatingWindow } = await import('../src/background.ts');
 
 test('overlapping openOrFocusFloatingWindow calls share one operation and return the same window', async () => {
   createCallCount = 0;
