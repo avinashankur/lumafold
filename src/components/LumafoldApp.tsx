@@ -48,6 +48,45 @@ export default function LumafoldApp() {
 
   const { state, loaded } = store;
 
+  const isFloating =
+    new URLSearchParams(window.location.search).get('mode') === 'floating';
+
+  useEffect(() => {
+    if (!isFloating) return;
+
+    const saveCurrentBounds = () => {
+      const bounds = {
+        width: window.outerWidth,
+        height: window.outerHeight,
+        left: window.screenX,
+        top: window.screenY,
+      };
+      setFloatingBounds(bounds).catch(console.error);
+    };
+
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    const onResize = () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(saveCurrentBounds, 300);
+    };
+
+    const flushBounds = () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      saveCurrentBounds();
+    };
+
+    window.addEventListener('resize', onResize);
+    window.addEventListener('beforeunload', flushBounds);
+    window.addEventListener('pagehide', flushBounds);
+
+    return () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('beforeunload', flushBounds);
+      window.removeEventListener('pagehide', flushBounds);
+    };
+  }, [isFloating]);
+
   useEffect(() => {
     return () => {
       document.body.style.cursor = '';
@@ -155,46 +194,8 @@ export default function LumafoldApp() {
   const panelWidths = activeFolder ? workspace.panelWidths(activeFolder) : [];
   const canShowAnotherPanel =
     !!activeFolder && workspace.canShowAnotherPanel(activeFolder);
-  const isFloating =
-    new URLSearchParams(window.location.search).get('mode') === 'floating';
   const isFullscreen =
     document.documentElement.getAttribute('data-mode') === 'tab';
-
-  useEffect(() => {
-    if (!isFloating) return;
-
-    const saveCurrentBounds = () => {
-      const bounds = {
-        width: window.outerWidth,
-        height: window.outerHeight,
-        left: window.screenX,
-        top: window.screenY,
-      };
-      setFloatingBounds(bounds).catch(console.error);
-    };
-
-    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-    const onResize = () => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(saveCurrentBounds, 300);
-    };
-
-    const flushBounds = () => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      saveCurrentBounds();
-    };
-
-    window.addEventListener('resize', onResize);
-    window.addEventListener('beforeunload', flushBounds);
-    window.addEventListener('pagehide', flushBounds);
-
-    return () => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('beforeunload', flushBounds);
-      window.removeEventListener('pagehide', flushBounds);
-    };
-  }, [isFloating]);
 
   const resetEqualWidths = () => {
     if (activeFolder) store.equalizePanels(activeFolder.id);
