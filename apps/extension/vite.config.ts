@@ -17,13 +17,16 @@ export default defineConfig({
       name: 'copy-extension-files',
       closeBundle() {
         try {
-          mkdirSync('dist/icons', { recursive: true });
-          if (existsSync('manifest.json'))
-            copyFileSync('manifest.json', 'dist/manifest.json');
+          const distDir = resolve(__dirname, 'dist');
+          const iconsDistDir = resolve(distDir, 'icons');
+          mkdirSync(iconsDistDir, { recursive: true });
+          const manifestPath = resolve(__dirname, 'manifest.json');
+          if (existsSync(manifestPath))
+            copyFileSync(manifestPath, resolve(distDir, 'manifest.json'));
           for (const size of [16, 48, 128]) {
-            const src = `icons/icon${size}.png`;
+            const src = resolve(__dirname, `icons/icon${size}.png`);
             if (existsSync(src))
-              copyFileSync(src, `dist/icons/icon${size}.png`);
+              copyFileSync(src, resolve(iconsDistDir, `icon${size}.png`));
           }
           console.log('✓ Extension files copied to dist/');
         } catch (e) {

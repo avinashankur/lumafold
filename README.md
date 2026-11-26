@@ -1,13 +1,14 @@
 # Lumafold
 
-Lumafold is a Chrome extension for structured note-taking. It organizes notes into folders, supports multiple panels per folder, and uses a rich text editor for long-form writing and quick capture.
+Lumafold combines multi-panel note-taking with built-in AI directly in your browser. Organize ideas across folders, write side by side, and let AI instantly summarize, rewrite, and structure your messy thoughts.
 
-It runs as the browser extension popup and can also open in a full-size tab for a larger workspace.
+From quick popup captures to a full-screen workspace, clarity is always one shortcut away.
 
 ## Features
 
 - Folder-based organization with drag-and-drop tab reordering.
 - Up to 3 visible panels per folder, with hide and unhide features.
+- Built-in AI assistant to rewrite, format, organize, summarize, and generate panel titles.
 - Rich text editing powered by Tiptap, including headings, lists, code, blockquotes, and font family controls.
 - Light and dark appearance settings, font size controls, and panel/tab-bar preferences.
 - Automatic persistence to Chrome storage, with a localStorage fallback when the extension APIs are unavailable.
@@ -30,7 +31,7 @@ npm install
 Build the extension:
 
 ```bash
-npm run build
+npm run build:ext
 ```
 
 Load it in Chrome:
@@ -38,31 +39,41 @@ Load it in Chrome:
 1. Open `chrome://extensions`.
 2. Enable Developer mode.
 3. Click Load unpacked.
-4. Select the `dist` folder.
+4. Select the `apps/extension/dist` folder.
 
 ## Development
 
-Run the Vite dev server:
+Run the extension Vite dev server:
 
 ```bash
-npm run dev
+npm run dev:ext
+```
+
+Run the landing site Vite dev server:
+
+```bash
+npm run dev:landing
 ```
 
 For browser-only development, open `http://localhost:5173/`.
 
-If you want to test the extension in Chrome, build first and load the generated `dist` folder as an unpacked extension.
+If you want to test the extension in Chrome, build first and load the generated `apps/extension/dist` folder as an unpacked extension.
 
 ## Scripts
 
-- `npm run dev` - start the Vite dev server
-- `npm run build` - type-check with `tsc` and build production assets with Vite
-- `npm run preview` - preview the production build locally
-- `npm run lint` - run ESLint
+- `npm run dev` / `npm run dev:ext` - start the extension Vite dev server
+- `npm run dev:landing` - start the landing site Vite dev server
+- `npm run build` - build both the extension and landing site
+- `npm run build:ext` - type-check and build the extension into `apps/extension/dist`
+- `npm run build:landing` - type-check and build the landing site into `apps/landing/dist`
+- `npm run preview:ext` / `npm run preview:landing` - preview production builds locally
+- `npm run lint` - run ESLint across all workspaces
 - `npm run lint:fix` - run ESLint with autofix
-- `npm run type-check` - run TypeScript without emitting files
+- `npm run type-check` - run TypeScript without emitting files across all workspaces
+- `npm test` - run extension unit tests
 - `npm run format` - format the codebase with Prettier
 - `npm run format:check` - verify formatting without writing files
-- `npm run check` - run linting and type-checking
+- `npm run check` - run linting and type-checking across all workspaces
 
 ## Keyboard Shortcuts
 
@@ -76,13 +87,14 @@ If you want to test the extension in Chrome, build first and load the generated 
 | `Ctrl+Shift+L`            | Toggle light and dark mode          |
 | `Ctrl+,`                  | Open or close Settings              |
 
-### Chrome command
+### Browser commands
 
 | Shortcut      | Action                      |
 | ------------- | --------------------------- |
-| `Alt+Shift+N` | Open Lumafold in a full tab |
+| `Alt+X`       | Open Lumafold toolbar popup |
+| `Alt+Shift+X` | Open Lumafold in a full tab |
 
-You can change the Chrome command at `chrome://extensions/shortcuts`.
+You can customize these shortcuts at `chrome://extensions/shortcuts` (or `about:addons` in Firefox).
 
 ## Data Model
 
@@ -110,33 +122,32 @@ Lumafold supports two display modes:
 
 ```text
 lumafold/
-├─ manifest.json        # MV3 manifest, permissions, and command bindings
-├─ background.js        # Service worker for the fullscreen command
-├─ index.html           # Extension entry page
-├─ public/
-│  └─ init.js           # Early bootstrap script
-├─ src/
-│  ├─ App.tsx           # App provider wrapper
-│  ├─ main.tsx          # React entry point
-│  ├─ types.ts          # Shared app state types
-│  ├─ hooks/
-│  │  └─ useStorage.ts  # React layer: load, update, save state
-│  ├─ components/
-│  │  ├─ LumafoldApp.tsx
-│  │  ├─ TabBar.tsx
-│  │  ├─ Panel.tsx
-│  │  ├─ RichEditor.tsx
-│  │  ├─ Settings.tsx
-│  │  ├─ FoldersModal.tsx
-│  │  └─ PanelsModal.tsx
-│  ├─ context/
-│  ├─ providers/
-│  └─ lib/
-│     ├─ workspace.ts  # Folder and panel rules (pure functions)
-│     └─ persistence.ts # Defaults, normalisation, storage adapters
-├─ icons/
-├─ dist/                # Production build output
-└─ package.json
+├─ package.json            # npm workspaces coordinator & shared lint/format scripts
+└─ apps/
+   ├─ extension/
+   │  ├─ manifest.json     # MV3 manifest, permissions, and command bindings
+   │  ├─ index.html        # Extension entry page
+   │  ├─ public/
+   │  │  └─ init.js        # Early bootstrap script
+   │  ├─ src/
+   │  │  ├─ App.tsx        # App provider wrapper
+   │  │  ├─ main.tsx       # React entry point
+   │  │  ├─ background.ts  # Service worker for the fullscreen command
+   │  │  ├─ types.ts       # Shared app state types
+   │  │  ├─ hooks/
+   │  │  │  └─ useStorage.ts
+   │  │  ├─ components/
+   │  │  ├─ context/
+   │  │  ├─ providers/
+   │  │  └─ lib/
+   │  ├─ tests/
+   │  ├─ icons/
+   │  └─ dist/             # Extension production build output
+   └─ landing/
+      ├─ index.html        # Website entry page
+      ├─ public/           # Static icons & SPA redirects
+      ├─ src/              # Landing, Privacy, Terms, Support pages
+      └─ dist/             # Website production build output
 ```
 
 ## Permissions

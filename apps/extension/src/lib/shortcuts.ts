@@ -104,3 +104,49 @@ export function matchShortcut(e: KeyPress): ShortcutMatch | null {
   }
   return { id: shortcut.id };
 }
+
+// ── Browser-level extension commands (customizable in browser settings) ──
+
+export type BrowserCommandName = '_execute_action' | 'open-fullscreen';
+
+export interface BrowserCommand {
+  name: BrowserCommandName;
+  description: string;
+  defaultKeys: string[];
+}
+
+export const BROWSER_COMMANDS: readonly BrowserCommand[] = [
+  {
+    name: '_execute_action',
+    description: 'Open toolbar popup',
+    defaultKeys: ['Alt', 'X'],
+  },
+  {
+    name: 'open-fullscreen',
+    description: 'Open in full tab',
+    defaultKeys: ['Alt', 'Shift', 'X'],
+  },
+];
+
+const MAC_MODIFIER_SYMBOLS = new Set(['⌘', '⌃', '⌥', '⇧']);
+
+/** Split a Chrome/Firefox `commands.Command.shortcut` string into display keycaps. */
+export function parseCommandKeys(shortcut: string): string[] {
+  const trimmed = shortcut.trim();
+  if (!trimmed) return ['Not set'];
+  if (trimmed.includes('+')) {
+    return trimmed
+      .split('+')
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+  // macOS returns compact symbol strings like "⌥⇧X" or "⌘⇧Space"
+  const keys: string[] = [];
+  let rest = trimmed;
+  while (rest.length > 0 && MAC_MODIFIER_SYMBOLS.has(rest[0])) {
+    keys.push(rest[0]);
+    rest = rest.slice(1);
+  }
+  if (rest) keys.push(rest);
+  return keys.length > 0 ? keys : ['Not set'];
+}

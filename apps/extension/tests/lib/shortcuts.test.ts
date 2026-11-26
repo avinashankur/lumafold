@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  BROWSER_COMMANDS,
   SHORTCUTS,
   type KeyPress,
   matchShortcut,
+  parseCommandKeys,
   shortcutLabel,
 } from '../../src/lib/shortcuts.ts';
 
@@ -103,4 +105,22 @@ test('editor shortcuts are not claimed', () => {
   }
   assert.equal(matchShortcut(press('S', { shiftKey: true })), null);
   assert.equal(matchShortcut(press('7', { shiftKey: true })), null);
+});
+
+test('browser commands define defaults for popup and full tab', () => {
+  assert.deepEqual(
+    BROWSER_COMMANDS.map((c) => [c.name, c.defaultKeys]),
+    [
+      ['_execute_action', ['Alt', 'X']],
+      ['open-fullscreen', ['Alt', 'Shift', 'X']],
+    ],
+  );
+});
+
+test('parseCommandKeys splits standard, mac symbol, and empty shortcuts', () => {
+  assert.deepEqual(parseCommandKeys('Alt+X'), ['Alt', 'X']);
+  assert.deepEqual(parseCommandKeys('Alt+Shift+X'), ['Alt', 'Shift', 'X']);
+  assert.deepEqual(parseCommandKeys('⌥⇧X'), ['⌥', '⇧', 'X']);
+  assert.deepEqual(parseCommandKeys(''), ['Not set']);
+  assert.deepEqual(parseCommandKeys('   '), ['Not set']);
 });

@@ -162,7 +162,7 @@ chrome.windows.onRemoved.addListener(async (closedWindowId) => {
 });
 
 // ── Track Window Size & Position when modified ──────────────────
-chrome.windows.onBoundsChanged.addListener(async (win) => {
+chrome.windows.onBoundsChanged?.addListener(async (win) => {
   const currentWindowId = await getSessionWindowId();
   if (
     win.id === currentWindowId &&

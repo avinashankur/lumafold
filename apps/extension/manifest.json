@@ -3,6 +3,15 @@
   "name": "Lumafold",
   "version": "1.0.0",
   "description": "A minimal, powerful notes app with folders, panels, and rich text editing.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "lumafold@extension",
+      "strict_min_version": "115.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
   "action": {
     "default_popup": "index.html",
     "default_icon": {
@@ -13,13 +22,18 @@
   },
   "background": {
     "service_worker": "background.js",
+    "scripts": ["background.js"],
     "type": "module"
   },
   "permissions": ["storage", "tabs", "system.display"],
   "commands": {
+    "_execute_action": {
+      "suggested_key": { "default": "Alt+X" },
+      "description": "Open Lumafold toolbar popup"
+    },
     "open-fullscreen": {
-      "suggested_key": { "default": "Alt+Shift+N" },
-      "description": "Open Lumafold in fullscreen tab"
+      "suggested_key": { "default": "Alt+Shift+X" },
+      "description": "Open Lumafold in full tab"
     }
   },
   "icons": {
