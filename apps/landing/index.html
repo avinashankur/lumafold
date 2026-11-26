@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumafold: Multi-panel browser notes with built-in AI</title>
+    <meta
+      name="description"
+      content="Organize ideas across folders, write in side-by-side panels, and rewrite or summarize with your own AI key directly in Chrome and Firefox."
+    />
+    <meta property="og:title" content="Lumafold: Multi-panel browser notes with built-in AI" />
+    <meta
+      property="og:description"
+      content="Local-first, multi-panel note workspace for your browser. From quick popup captures to a full-tab workspace."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('lumafold_landing_theme');
+          var dark =
+            saved === 'dark' ||
+            (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
